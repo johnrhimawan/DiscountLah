@@ -1,0 +1,30 @@
+
+            <Tab.Navigator>
+                <Tab.Screen name="Home" component={FeedScreen} 
+                    options={{
+                        tabBarIcon:({ color, size}) => (
+                            <MaterialCommunityIcons name="home" color={color} size={26} />
+                        ),
+                    }}
+                />
+                <Tab.Screen name="Add" component={AddScreen} 
+                    listeners={({ navigation }) => ({
+                        tabPress: event => {
+                            event.preventDefault();
+                            navigation.navigate("Add")
+                        }
+                    })}
+                    options={{
+                        tabBarIcon:({ color, size}) => (
+                            <MaterialCommunityIcons name="plus-box" color={color} size={26} />
+                        ),
+                    }}
+                />
+                <Tab.Screen name="Profile" component={ProfileScreen} 
+                    options={{
+                        tabBarIcon:({ color, size}) => (
+                            <MaterialCommunityIcons name="account-circle" color={color} size={26} />
+                        ),
+                    }}
+                />
+            </Tab.Navigator>
