@@ -11,6 +11,7 @@ import thunk from 'redux-thunk'
 
 const store = createStore(rootReducer, applyMiddleware(thunk))
 
+
 const firebaseConfig = {
   apiKey: "AIzaSyDsiPaWC_Q6noWyZ4-j20Zgk8W5_JIvqm4",
   authDomain: "discountlah-20247.firebaseapp.com",
@@ -20,6 +21,10 @@ const firebaseConfig = {
   appId: "1:289678182215:web:72bb317a65f39b6f1c2e62",
   measurementId: "G-WETQBEEE4Q",
 };
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth();
+const db = getFirestore();
 
 if (firebase.apps.length === 0) {
   firebase.initializeApp(firebaseConfig);
@@ -93,6 +98,11 @@ export class App extends Component {
 }
 
 export default App;
+
+export {
+  auth,
+  db
+}
 
 const styles = StyleSheet.create({
   container: {
