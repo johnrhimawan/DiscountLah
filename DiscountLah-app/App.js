@@ -22,10 +22,6 @@ const firebaseConfig = {
   measurementId: "G-WETQBEEE4Q",
 };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth();
-const db = getFirestore();
-
 if (firebase.apps.length === 0) {
   firebase.initializeApp(firebaseConfig);
 }
@@ -98,11 +94,6 @@ export class App extends Component {
 }
 
 export default App;
-
-export {
-  auth,
-  db
-}
 
 const styles = StyleSheet.create({
   container: {

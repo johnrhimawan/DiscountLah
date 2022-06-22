@@ -1,9 +1,11 @@
 import { View, Button, Text, Modal, SafeAreaView, ActivityIndicator, FlatList } from 'react-native';
 import InlineTextButton from '../feature/InlineTextButton';
 import AppStyles from '../../styles/AppStyles';
-import { auth, db } from "../../App";
+// import { auth, db } from "../../App";
+import firebase from "firebase";
+
 import { collection, addDoc, query, where, getDocs, deleteDoc, doc, setDoc } from "firebase/firestore"; 
-import { sendEmailVerification } from 'firebase/auth';
+//import { sendEmailVerification } from 'firebase/auth';
 import React from 'react';
 import AddCouponModal from '../feature/AddCouponModal';
 import BouncyCheckbox from 'react-native-bouncy-checkbox';
@@ -90,14 +92,7 @@ export default function AddCoupon({ navigation }) {
     );
   };
 
-  let showSendVerificationEmail = () => {
-    return (
-      <View>
-        <Text>Please verify your email to use Coupon</Text>
-        <Button title="Send Verification Email" onPress={() => sendEmailVerification(auth.currentUser)} />
-      </View>
-    );
-  };
+
 
   let addCoupon = async (coupon) => {
     let couponToSave = {
@@ -117,9 +112,6 @@ export default function AddCoupon({ navigation }) {
   
   return (
     <SafeAreaView>
-      <View style={[AppStyles.rowContainer, AppStyles.rightAligned, AppStyles.rightMargin, AppStyles.topMargin]}>
-        <InlineTextButton text="Manage Account" color="#258ea6" onPress={() => navigation.navigate("ManageAccount")}/>
-      </View>
       <Modal
         animationType="slide"
         transparent={true}
@@ -130,7 +122,7 @@ export default function AddCoupon({ navigation }) {
           addCoupon={addCoupon} />
       </Modal>
       <Text style={AppStyles.header}>Coupon</Text>
-      {auth.currentUser.emailVerified ? showContent() : showSendVerificationEmail()}
+      {showContent()}
     </SafeAreaView>
   )
 }
@@ -138,23 +130,19 @@ export default function AddCoupon({ navigation }) {
 import React from "react";
 import { Stylesheet, Text, View, Button } from "react-native";
 // import GestureRecognizer, {swipeDirections} from 'react-native-swipe-gestures';
-
 import {
   useFonts,
   Sunflower_500Medium,
   Sunflower_700Bold,
 } from "@expo-google-fonts/dev";
-
 export default function Add() {
   let [fontsLoaded] = useFonts({
     Sunflower_500Medium,
     Sunflower_700Bold,
   });
-
   if (!fontsLoaded) {
     return null;
   }
-
   return (
     <View style={{marginTop: 20}}>
       <Text
