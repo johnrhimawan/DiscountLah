@@ -45,43 +45,13 @@ export default function Map() {
   let mapIndex = 0;
   let mapAnimation = new Animated.Value(0);
 
-  useEffect(() => {
-    mapAnimation.addListener(({ value }) => {
-      let index = Math.floor(value / CARD_WIDTH + 0.3);
-      if (index >= Data.length) {
-        index = Data.length - 1;
-      }
-      if (index <= 0) {
-        index = 0;
-      }
-
-      clearTimeout(regionTimeout);
-
-      const regionTimeout = setTimeout(() => {
-        if (mapIndex !== index) {
-          mapIndex = index;
-          currMap.current.animateToRegion(
-            {
-              latitude: Data[index].coordinate.latitude,
-              longitude: Data[index].coordinate.longitude,
-              latitudeDelta: position.latitudeDelta,
-              longitudeDelta: position.longitudeDelta,
-            },
-            350
-          );
-        }
-      }, 10);
-    });
-  });
-
-  const onMarkerPress = (mapEventData) => {
-    const cardID = mapEventData._targetInst.return.key - 1;
-    let x = cardID * CARD_WIDTH + cardID * 20;
-    currScrollView.current.scrollTo({ x: x, y: 0, animated: true });
-  };
-
   const currMap = React.useRef(null);
   const currScrollView = React.useRef(null);
+
+  let markerCounter = -1;
+  let cardCounter = -1;
+
+  let distances = [];
 
   useEffect(() => {
     (async () => {
@@ -101,8 +71,62 @@ export default function Map() {
     })();
   }, []);
 
+  useEffect(() => {
+    mapAnimation.addListener(({ value }) => {
+      let index = Math.floor(value / CARD_WIDTH + 0.3);
+      if (index >= Data.length) {
+        index = Data.length - 1;
+      }
+      if (index <= 0) {
+        index = 0;
+      }
+
+      clearTimeout(regionTimeout);
+
+      const regionTimeout = setTimeout(() => {
+        if (mapIndex !== index) {
+          mapIndex = index;
+          currMap.current.animateToRegion(
+            {
+              latitude: Data[distances[index][1] - 1].coordinate.latitude,
+              longitude: Data[distances[index][1] - 1].coordinate.longitude,
+              latitudeDelta: position.latitudeDelta,
+              longitudeDelta: position.longitudeDelta,
+            },
+            350
+          );
+        }
+      }, 10);
+    });
+  });
+
+  const onMarkerPress = (mapEventData) => {
+    const cardID = mapEventData._targetInst.return.key;
+    let x = cardID * CARD_WIDTH + cardID * 20;
+    currScrollView.current.scrollTo({ x: x, y: 0, animated: true });
+  };
+
+
   if (errorMsg) {
     console.log(errorMsg);
+  }
+
+  if (location) {
+    distances = Data.map((marker) => {
+      return [
+        Math.sqrt(Math.pow(marker.coordinate.latitude - position.latitude, 2) + Math.pow(marker.coordinate.longitude - position.longitude, 2)),
+        marker.index,
+      ];
+    });
+
+    function sorter(a, b) {
+      if (a[0] === b[0]) {
+        return 0;
+      }
+      return a[0] < b[0] ? -1 : 1;
+    }
+
+    distances.sort(sorter);
   }
 
   if (!fontsLoaded || !location) {
@@ -132,10 +156,12 @@ export default function Map() {
             strokeColor={"#49a6f2"}
             fillColor={"rgba(73, 166, 242, 0.1)"}
           />
-          {Data.map((marker) => {
+          {distances.map((sortedMarker) => {
+            const marker = Data[sortedMarker[1] - 1];
+            markerCounter = markerCounter + 1
             return (
               <Marker
-                key={marker.index}
+                key={markerCounter}
                 coordinate={marker.coordinate}
                 title={marker.storeName}
                 description={marker.desc}
@@ -164,21 +190,19 @@ export default function Map() {
             { useNativeDriver: true }
           )}
         >
-          {Data.map((marker) => {
+          {distances.map((sortedMarker) => {
+            const marker = Data[sortedMarker[1] - 1];
+            cardCounter = cardCounter + 1
             return (
-              <View style={styles.card} key={marker.index}>
+              <View style={styles.card} key={cardCounter}>
                 <Image
                   source={marker.storeImage}
                   style={styles.cardImage}
                   resizeMode="cover"
                 />
                 <View style={styles.textContent}>
-                  <Text style={styles.cardtitle}>
-                    {marker.storeName}
-                  </Text>
-                  <Text styles={styles.cardDescription}>
-                    {marker.desc}
-                  </Text>
+                  <Text style={styles.cardtitle}>{marker.storeName}</Text>
+                  <Text styles={styles.cardDescription}>{marker.desc}</Text>
                   <Text styles={styles.cardValidity}>
                     {"Valid until " + marker.validity}
                   </Text>
@@ -291,35 +315,3 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 });
-
-{
-  /* <View style={styles.container}>
-<Text
-  style={{
-    fontFamily: "Sunflower_700Bold",
-    fontSize: 24,
-    textAlign: "left",
-    marginLeft: 10,
-    marginBottom: 5,
-  }}
->
-  Map Screen
-</Text>
-<Text
-  style={{
-    fontFamily: "Sunflower_500Medium",
-    fontSize: 18,
-    color: "#9f9f9f",
-    textAlign: "left",
-    marginLeft: 15,
-    marginTop: 5,
-    marginBottom: 10,
-  }}
->
-  User can check the nearby places where they can redeem their coupons.
-</Text>
-<View style={(alignItems = "center")}>
-  <Image style={styles.image} source={mapSample} />
-</View>
-</View> */
-}
