@@ -8,6 +8,7 @@ import {
   Animated,
   TouchableOpacity,
   Platform,
+  Modal,
 } from "react-native";
 
 import MapView, { Marker, Circle } from "react-native-maps";
@@ -20,15 +21,32 @@ import {
 } from "@expo-google-fonts/dev";
 
 import Data from "../data/Data";
+import MapModal from "../feature/MapModal"
 
 const { width, height } = Dimensions.get("window");
 const CARD_HEIGHT = 250;
 const CARD_WIDTH = width * 0.8;
 const CARD_SPACING = width * 0.1 - 10;
 
+// const ModalPopup = ({visible, children}) => {
+//   cosnt [showModal, setShowModal] = useState(visible);
+//   return (
+//     <Modal transparent visible={true}>
+//       <View style={styles.modalBackground}>
+//         <View>
+//           {children}
+//         </View>
+//       </View>
+//     </Modal>
+//   );
+// };
+
 export default function Map() {
   const [location, setLocation] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
+
+  const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [modalData, setModalData] = useState(null);
 
   const [position, setPosition] = useState({
     latitude: -6,
@@ -208,7 +226,10 @@ export default function Map() {
                   </Text>
                   <View style={styles.button}>
                     <TouchableOpacity
-                      onPress={() => {}}
+                      onPress={() => {
+                        setModalData(marker);
+                        setModalIsOpen(true);
+                      }}
                       style={[
                         styles.couponButton,
                         {
@@ -217,14 +238,7 @@ export default function Map() {
                         },
                       ]}
                     >
-                      <Text
-                        style={[
-                          styles.buttonText,
-                          {
-                            color: "#ff6347",
-                          },
-                        ]}
-                      >
+                      <Text style={[styles.buttonText, { color: '#ff6347',},]}>
                         Use Coupon
                       </Text>
                     </TouchableOpacity>
@@ -234,6 +248,9 @@ export default function Map() {
             );
           })}
         </Animated.ScrollView>
+        <Modal visible={modalIsOpen} transparent={true} onRequestClose={() => setModalIsOpen(false)} style={styles.modalBackground}>
+          <MapModal marker={modalData} closeModal={() => setModalIsOpen(false)} />
+        </Modal>
       </View>
     );
   }
@@ -314,4 +331,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "bold",
   },
+  modalBackground: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: "center",
+    alignItems: "center",
+  }
 });
