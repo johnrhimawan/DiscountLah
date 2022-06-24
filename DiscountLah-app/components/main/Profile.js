@@ -92,7 +92,7 @@ export class Profile extends Component {
             <Text style={styles.text}> Logout </Text>
           </Pressable>
         </View>
-        <Modal visible={this.state.modalIsOpen} transparent={true} onRequestClose={this.toggleCloseModal} style={styles.modalBackground}>
+        <Modal animationType="slide" visible={this.state.modalIsOpen} transparent={true} onRequestClose={this.toggleCloseModal} style={styles.modalBackground}>
           <ProfileModal user={currentUser} closeModal={this.toggleCloseModal} />
         </Modal>
       </View>
