@@ -10,6 +10,8 @@ import {
   Image,
 } from "react-native";
 
+import firebase from "firebase";
+
 export default class MapModal extends React.Component {
   state = {
     storeName: this.props.marker.storeName,
