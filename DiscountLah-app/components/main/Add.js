@@ -1,37 +1,68 @@
-import { View, Button, Text, Modal, SafeAreaView, ActivityIndicator, FlatList } from 'react-native';
-import InlineTextButton from '../feature/InlineTextButton';
-import AppStyles from '../../styles/AppStyles';
+import {
+  View,
+  Button,
+  Text,
+  Modal,
+  SafeAreaView,
+  ActivityIndicator,
+  FlatList,
+} from "react-native";
+import InlineTextButton from "../feature/InlineTextButton";
+import AppStyles from "../../styles/AppStyles";
 import firebase from "firebase";
-import { collection, addDoc, query, where, getDocs, deleteDoc, doc, setDoc } from "firebase/firestore";
-import React from 'react';
-import AddCouponModal from '../feature/AddCouponModal';
-import BouncyCheckbox from 'react-native-bouncy-checkbox';
+import {
+  collection,
+  addDoc,
+  query,
+  where,
+  getDocs,
+  deleteDoc,
+  doc,
+  setDoc,
+} from "firebase/firestore";
+import React from "react";
+import AddCouponModal from "../feature/AddCouponModal";
+import BouncyCheckbox from "react-native-bouncy-checkbox";
 
 export default function AddCoupon() {
   let [modalVisible, setModalVisible] = React.useState(false);
   let [isLoading, setIsLoading] = React.useState(true);
   let [isRefreshing, setIsRefreshing] = React.useState(false);
-  let [addCoupons, setCoupons] = React.useState([]);
+  let [coupons, setCoupons] = React.useState([]);
   let [querySnapshot, setQuerySnapshot] = React.useState(null);
   let [deletedDoc, setDeletedDoc] = React.useState(null);
   let [docRef, setDocRef] = React.useState(null);
 
   let loadCouponList = async () => {
     console.log("load coupon");
-    const q = query(collection(firebase.firestore(), "coupons"), where("userId", "==", firebase.auth().currentUser.uid));
-    try {
-      let querySnapshot = await getDocs(q);
-    } catch (err) {
-      console.error(err);
-    }
-    setQuerySnapshot(querySnapshot);
-    
     let coupons = [];
-    querySnapshot.forEach((doc) => {
-      let coupon = doc.data();
-      coupon.id = doc.id;
-      coupons.push(coupon);
-    });
+
+    firebase
+      .firestore()
+      .collection("coupons")
+      .where("userId", "==", firebase.auth().currentUser.uid)
+      .get()
+      .then(() => {
+        console.log("this got executed now");
+      })
+      .then((querySnapshot) => {
+        console.log(querySnapshot);
+        if (querySnapshot) {
+          querySnapshot.forEach((doc) => {
+            // doc.data() is never undefined for query doc snapshots
+            console.log(doc.id, " => ", doc.data());
+            let coupon = doc.data();
+            coupon.id = doc.id;
+            coupons.push(coupon);
+          });
+          setQuerySnapshot(querySnapshot);
+        }
+      })
+      .catch((error) => {
+        console.log("Error getting documents: ", error);
+      });
+
+    console.log("execution done");
 
     setCoupons(coupons);
     setIsLoading(false);
@@ -44,14 +75,16 @@ export default function AddCoupon() {
 
   let checkCouponItem = (item, isChecked) => {
     console.log("check coupon");
-    const couponRef = doc(firebase.firestore(), 'coupons', item.id);
+    const couponRef = doc(firebase.firestore(), "coupons", item.id);
     setDoc(couponRef, { completed: isChecked }, { merge: true });
   };
 
   let deleteCoupon = async (couponId) => {
     console.log("delete coupon");
     try {
-      let deletedDoc = await deleteDoc(doc(firebase.firestore(), "coupons", couponId));
+      let deletedDoc = await deleteDoc(
+        doc(firebase.firestore(), "coupons", couponId)
+      );
     } catch (err) {
       console.error(err);
     }
@@ -60,10 +93,16 @@ export default function AddCoupon() {
     setCoupons(updatedCoupons);
   };
 
-  let renderCouponItem = ({item}) => {
+  let renderCouponItem = ({ item }) => {
     console.log("render coupon");
     return (
-      <View style={[AppStyles.rowContainer, AppStyles.rightMargin, AppStyles.leftMargin]}>
+      <View
+        style={[
+          AppStyles.rowContainer,
+          AppStyles.rightMargin,
+          AppStyles.leftMargin,
+        ]}
+      >
         <View style={AppStyles.fillSpace}>
           <BouncyCheckbox
             isChecked={item.complated}
@@ -72,13 +111,19 @@ export default function AddCoupon() {
             unfillColor="#FFFFFF"
             text={item.text}
             iconStyle={{ borderColor: "#258ea6" }}
-            onPress={(isChecked) => { checkCouponItem(item, isChecked)}}
+            onPress={(isChecked) => {
+              checkCouponItem(item, isChecked);
+            }}
           />
         </View>
-        <InlineTextButton text="Delete" color="#258ea6" onPress={() => deleteCoupon(item.id)} />
+        <InlineTextButton
+          text="Delete"
+          color="#258ea6"
+          onPress={() => deleteCoupon(item.id)}
+        />
       </View>
     );
-  }
+  };
 
   let showCouponList = () => {
     console.log("show coupon");
@@ -91,64 +136,72 @@ export default function AddCoupon() {
           setIsRefreshing(true);
         }}
         renderItem={renderCouponItem}
-        keyExtractor={item => item.id} />
-    )
+        keyExtractor={(item) => item.id}
+      />
+    );
   };
 
   let showContent = () => {
     console.log("show content");
     return (
       <View>
-        {isLoading ? <ActivityIndicator size="large" /> : showCouponList() }
-        <Button 
-          title="Add Coupon" 
-          onPress={() => setModalVisible(true)} 
-          color="#fb4d3d" />
+        {isLoading ? <ActivityIndicator size="large" /> : showCouponList()}
+        <Button
+          title="Add Coupon"
+          onPress={() => setModalVisible(true)}
+          color="#fb4d3d"
+        />
       </View>
     );
   };
-
-
 
   let addCoupon = async (coupon) => {
     console.log("add coupon");
     let couponToSave = {
       text: coupon,
       completed: false,
-      userId: firebase.auth().currentUser.uid
+      userId: firebase.auth().currentUser.uid,
     };
 
-    try {
-      let docRef = await addDoc(collection(firebase.firestore(), "coupons"), couponToSave);
-    } catch(err) {
-      console.error(err);
-    }
-    setDocRef(docRef);
-    couponToSave.id = docRef.id;
+    firebase
+      .firestore()
+      .collection("coupons")
+      .add(couponToSave)
+      .then((docRef) => {
+        console.log("Document written with ID: ", docRef.id);
+        setDocRef(docRef);
+        couponToSave.id = docRef.id;
+      })
+      .catch((error) => {
+        console.error("Error adding document: ", error);
+      });
 
     let updatedCoupons = [...coupons];
     updatedCoupons.push(couponToSave);
 
     setCoupons(updatedCoupons);
   };
-  
-  //if (!querySnapshot || !deletedDoc || !docRef) {
-  //  return null;
- // } else {
+
+  if (isLoading) {
+    return null;
+  } else {
     return (
       <SafeAreaView>
         <Modal
           animationType="slide"
           transparent={true}
           visible={modalVisible}
-          onRequestClose={() => setModalVisible(false)}>
-          <AddCouponModal 
+          onRequestClose={() => setModalVisible(false)}
+        >
+          <AddCouponModal
             onClose={() => setModalVisible(false)}
-            addCoupon={addCoupon} />
+            addCoupon={addCoupon}
+          />
         </Modal>
         <Text style={AppStyles.header}>Coupon</Text>
         {showContent()}
       </SafeAreaView>
-    )
+    );
+  }
   //}
 }
