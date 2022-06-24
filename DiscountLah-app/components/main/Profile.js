@@ -86,7 +86,7 @@ export class Profile extends Component {
             <Text style={styles.text}> Edit Profile </Text>
           </Pressable>
         </View>
-        <View style={{ marginTop: 20, alignItems: "center", backgroundColor: "#ff0000", flex: 1 }}>
+        <View style={{ marginTop: 20, alignItems: "center", flex: 1 }}>
           <Pressable style={styles.button} onPress={() => onLogout()}>
             <Text style={styles.text}> Logout </Text>
           </Pressable>
@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
   button: {
     alignItems: "center",
     paddingVertical: 10,
-    paddingHorizontal: 50,
+    paddingHorizontal: 10,
     borderRadius: 10,
     elevation: 3,
     backgroundColor: "#f3a256",
@@ -138,6 +138,7 @@ const styles = StyleSheet.create({
     color: "white",
   },
   textContent: {
+    marginLeft: 10,
     marginTop: 10,
     flex: 4,
     padding: 10,
