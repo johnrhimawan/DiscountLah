@@ -15,7 +15,6 @@ import {
 import firebase from "firebase";
 
 export class ProfileModal extends Component {
-
   constructor(props) {
     super(props);
     this.state = {
@@ -39,7 +38,17 @@ export class ProfileModal extends Component {
     if (password !== confirmPassword) {
       console.log("wrong password");
     } else if (password === "") {
-        firebase
+      firebase
+        .auth()
+        .currentUser.updateEmail(email)
+        .then(() => {
+          console.log("email updated");
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+
+      firebase
         .firestore()
         .collection("users")
         .doc(firebase.auth().currentUser.uid)
@@ -61,12 +70,26 @@ export class ProfileModal extends Component {
           this.props.closeModal();
         });
     } else {
-      firebase.auth().currentUser.updatePassword(newPassword).then(() => {
-        console.log("password updated")
-      }).catch((error) => {
-        console.log(error);
-      });
-      
+      firebase
+        .auth()
+        .currentUser.updateEmail(email)
+        .then(() => {
+          console.log("email updated");
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+
+      firebase
+        .auth()
+        .currentUser.updatePassword(password)
+        .then(() => {
+          console.log("password updated");
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+
       firebase
         .firestore()
         .collection("users")
@@ -93,74 +116,81 @@ export class ProfileModal extends Component {
 
   render() {
     return (
-        <View style={styles.modalBackground}>
+      <View style={styles.modalBackground}>
         <View style={styles.modalContainer}>
-        <View style={styles.profilePlaceholder}>
-        <Text
-            style={{
-              fontFamily: "Sunflower_700Bold",
-              fontSize: 24,
-              textAlign: "left",
-              marginLeft: 10,
-              marginBottom: 5,
-            }}
-          >
-            {" "}
-            Edit Profile
-          </Text>
-        <View style={styles.specificPlaceholders}>
-        <Text style={{marginTop: 10, marginLeft: 10}}>Name</Text>
-        <TextInput
-          placeholder={this.props.user.name}
-          onChangeText={(name) => this.setState({ name })}
-          style={styles.textinput}
-        />
-        <Text style={{marginTop: 10, marginLeft: 10}}>Email</Text>
-        <TextInput
-          placeholder={this.props.user.email}
-          keyboardType="email-address"
-          onChangeText={(email) => this.setState({ email })}
-          style={styles.textinput}
-        />
+          <View style={styles.profilePlaceholder}>
+            <Text
+              style={{
+                fontFamily: "Sunflower_700Bold",
+                fontSize: 24,
+                textAlign: "left",
+                marginLeft: 10,
+                marginBottom: 5,
+              }}
+            >
+              {" "}
+              Edit Profile
+            </Text>
+            <View style={styles.specificPlaceholders}>
+              <Text style={{ marginTop: 10, marginLeft: 10 }}>Name</Text>
+              <TextInput
+                placeholder={this.props.user.name}
+                onChangeText={(name) => this.setState({ name })}
+                style={styles.textinput}
+              />
+              <Text style={{ marginTop: 10, marginLeft: 10 }}>Email</Text>
+              <TextInput
+                placeholder={this.props.user.email}
+                keyboardType="email-address"
+                onChangeText={(email) => this.setState({ email })}
+                style={styles.textinput}
+              />
+            </View>
+            <Text
+              style={{
+                fontFamily: "Sunflower_700Bold",
+                fontSize: 24,
+                textAlign: "left",
+                marginLeft: 10,
+                marginBottom: 5,
+                marginTop: 30,
+              }}
+            >
+              {" "}
+              Security Options
+            </Text>
+            <View style={styles.specificPlaceholders}>
+              <Text style={{ marginTop: 10, marginLeft: 10 }}>
+                New Password
+              </Text>
+              <TextInput
+                placeholder="New Password"
+                secureTextEntry={true}
+                onChangeText={(newPassword) => this.setState({ newPassword })}
+                style={styles.textinput}
+              />
+              <Text style={{ marginTop: 10, marginLeft: 10 }}>
+                Confirm New Password
+              </Text>
+              <TextInput
+                placeholder="Confirm New Password"
+                secureTextEntry={true}
+                onChangeText={(toConfirmPassword) =>
+                  this.setState({ toConfirmPassword })
+                }
+                style={styles.textinput}
+              />
+            </View>
+          </View>
+          <View style={styles.buttonContent}>
+            <Pressable
+              style={styles.button}
+              onPress={() => this.handleUpdate()}
+            >
+              <Text style={styles.text}> Update Profile </Text>
+            </Pressable>
+          </View>
         </View>
-        <Text
-            style={{
-              fontFamily: "Sunflower_700Bold",
-              fontSize: 24,
-              textAlign: "left",
-              marginLeft: 10,
-              marginBottom: 5,
-              marginTop: 30,
-            }}
-          >
-            {" "}
-            Security Options
-          </Text>
-          <View style={styles.specificPlaceholders}>
-          <Text style={{marginTop: 10, marginLeft: 10}}>New Password</Text>
-        <TextInput
-          placeholder="New Password"
-          secureTextEntry={true}
-          onChangeText={(newPassword) => this.setState({ newPassword })}
-          style={styles.textinput}
-        />
-        <Text style={{marginTop: 10, marginLeft: 10}}>Confirm New Password</Text>
-        <TextInput
-          placeholder="Confirm New Password"
-          secureTextEntry={true}
-          onChangeText={(toConfirmPassword) =>
-            this.setState({ toConfirmPassword })
-          }
-          style={styles.textinput}
-        />
-        </View>
-        </View>
-        <View style={styles.buttonContent}>
-        <Pressable style={styles.button} onPress={() => this.handleUpdate()}>
-          <Text style={styles.text}> Update Profile </Text>
-        </Pressable>
-        </View>
-      </View>
       </View>
     );
   }

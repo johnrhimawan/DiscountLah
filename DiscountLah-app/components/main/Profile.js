@@ -42,7 +42,8 @@ export class Profile extends Component {
   toggleCloseModal() {
     this.setState({
       modalIsOpen: false,
-    })
+    });
+    this.props.fetchUser();
   }
 
   render() {
