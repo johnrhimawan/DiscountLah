@@ -75,12 +75,14 @@ export default function AddCoupon() {
 
   let checkCouponItem = (item, isChecked) => {
     console.log("check coupon");
-    const couponRef = doc(firebase.firestore(), "coupons", item.id);
+    const couponRef = doc(firebase.firestore(), "coupons", item.id); // line error
+    
     setDoc(couponRef, { completed: isChecked }, { merge: true });
   };
 
   let deleteCoupon = async (couponId) => {
     console.log("delete coupon");
+    /*
     try {
       let deletedDoc = await deleteDoc(
         doc(firebase.firestore(), "coupons", couponId)
@@ -88,7 +90,18 @@ export default function AddCoupon() {
     } catch (err) {
       console.error(err);
     }
-    setDeletedDoc(deletedDoc);
+    */
+    firebase
+      .firestore()
+      .collection("coupons")
+      .doc("couponId")
+      .delete()
+      .then(() => { console.log("Document successfully deleted!");})
+      .catch((error) => {
+        console.error("Error removing document: ", error);
+      })
+    
+    setDeletedDoc(couponId);
     let updatedCoupons = [...coupons].filter((item) => item.id != couponId);
     setCoupons(updatedCoupons);
   };
