@@ -75,22 +75,12 @@ export default function AddCoupon() {
 
   let checkCouponItem = (item, isChecked) => {
     console.log("check coupon");
-    const couponRef = doc(firebase.firestore(), "coupons", item.id); // line error
-    
-    setDoc(couponRef, { completed: isChecked }, { merge: true });
+    const couponRef = firebase.firestore().collection("coupons").doc(item.id);
+    couponRef.set({ completed: isChecked }, { merge: true });
   };
 
   let deleteCoupon = async (couponId) => {
     console.log("delete coupon");
-    /*
-    try {
-      let deletedDoc = await deleteDoc(
-        doc(firebase.firestore(), "coupons", couponId)
-      );
-    } catch (err) {
-      console.error(err);
-    }
-    */
     firebase
       .firestore()
       .collection("coupons")
@@ -216,5 +206,4 @@ export default function AddCoupon() {
       </SafeAreaView>
     );
   }
-  //}
 }
