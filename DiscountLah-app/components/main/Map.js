@@ -14,6 +14,8 @@ import {
 import MapView, { Marker, Circle } from "react-native-maps";
 import * as Location from "expo-location";
 
+import LocationMarkers from "../data/LocationMarkers";
+
 import {
   useFonts,
   Sunflower_500Medium,
@@ -28,18 +30,7 @@ const CARD_HEIGHT = 250;
 const CARD_WIDTH = width * 0.8;
 const CARD_SPACING = width * 0.1 - 10;
 
-// const ModalPopup = ({visible, children}) => {
-//   cosnt [showModal, setShowModal] = useState(visible);
-//   return (
-//     <Modal transparent visible={true}>
-//       <View style={styles.modalBackground}>
-//         <View>
-//           {children}
-//         </View>
-//       </View>
-//     </Modal>
-//   );
-// };
+import firebase from "firebase";
 
 export default function Map() {
   const [location, setLocation] = useState(null);
@@ -70,6 +61,12 @@ export default function Map() {
   let cardCounter = -1;
 
   let distances = [];
+
+  const currentUser = firebase.auth().currentUser;
+
+  if (currentUser === undefined) {
+    return <View></View>
+  }
 
   useEffect(() => {
     (async () => {
@@ -130,7 +127,7 @@ export default function Map() {
   }
 
   if (location) {
-    distances = Data.map((marker) => {
+    distances = LocationMarkers.map((marker) => {
       return [
         Math.sqrt(Math.pow(marker.coordinate.latitude - position.latitude, 2) + Math.pow(marker.coordinate.longitude - position.longitude, 2)),
         marker.index,

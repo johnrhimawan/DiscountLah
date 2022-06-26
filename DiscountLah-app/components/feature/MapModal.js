@@ -24,6 +24,7 @@ export default class MapModal extends React.Component {
     console.log(this.props.marker);
     console.log(this.state.storeImage);
     const { width, height } = Dimensions.get("window");
+    
     return (
       <View style={styles.modalBackground}>
         <View style={styles.modalContainer}>

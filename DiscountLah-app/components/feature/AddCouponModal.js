@@ -1,76 +1,124 @@
-import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
-import React from 'react';
-import AppStyles from '../../styles/AppStyles';
-import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import {
+  View,
+  Text,
+  TextInput,
+  Button,
+  Platform,
+  Pressable,
+} from "react-native";
+import React from "react";
+import AppStyles from "../../styles/AppStyles";
+
+import DateTimePicker from "@react-native-community/datetimepicker";
+import SelectList from "react-native-dropdown-select-list";
+
+const storeNames = [
+  {key:1, value:'Boost'},
+  {key:2, value:'Don Don Donki'},
+  {key:3, value:'H&M'},
+  {key:4, value:'KFC'},
+  {key:5, value:'NUS Co-op'},
+];
 
 export default function AddCouponModal(props) {
   let [coupon, setCoupon] = React.useState("");
+  let [selected, setSelected] = React.useState(0);
   let [store, setStore] = React.useState("");
   let [description, setDescription] = React.useState("");
-  let [date, setDate] = React.useState('');
-  let [isDatePickerVisible, setDatePickerVisibility] = React.useState(false);
+  let [validity, setValidity] = React.useState("");
 
-  const showDatePicker = () => {
-    setDatePickerVisibility(true);
+  const [isDateSet, setIsDateSet] = React.useState(false);
+  const [date, setDate] = React.useState(new Date());
+  const [show, setShow] = React.useState(false);
+
+  const onDateChange = (event, selectedDate) => {
+    const currentDate = selectedDate || date;
+    setShow(Platform.OS === "ios");
+    setIsDateSet(true);
+    setDate(currentDate);
   };
 
-  const hideDatePicker = () => {
-    setDatePickerVisibility(false);
+  const dateFormatter = (date) => {
+    let tempDate = date;
+    return (
+      tempDate.getDate() +
+      "/" +
+      (tempDate.getMonth() + 1) +
+      "/" +
+      tempDate.getFullYear()
+    );
   };
-
-  const handleConfirm = (date) => {
-    setDate(date);
-    hideDatePicker();
-  };
-
-  const getDate = () => {
-    let tempDate = date.toString().split(' ');
-    return date !== ''
-      ? `${tempDate[0]} ${tempDate[1]} ${tempDate[2]} ${tempDate[3]}`
-      : '';
-  };
-
 
   return (
     <View style={AppStyles.container}>
       <Text style={AppStyles.header}>Add Coupon</Text>
-      <TextInput 
-          style={[AppStyles.textInput, AppStyles.darkTextInput]} 
-          placeholder='Coupon'
-          value={coupon}
-          onChangeText={setCoupon} />
-      <TextInput 
-          style={[AppStyles.textInput, AppStyles.darkTextInput]} 
-          placeholder='Store Name'
-          value={store}
-          onChangeText={setStore} />
-      <TextInput 
-          style={[AppStyles.textInput, AppStyles.darkTextInput]} 
-          placeholder='Coupon Description'
-          value={description}
-          onChangeText={setDescription} />
+
+      {/* <TextInput
+        style={[AppStyles.textInput, AppStyles.darkTextInput]}
+        placeholder="Store Name"
+        value={store}
+        onChangeText={setStore}
+      /> */}
+      <SelectList
+        data={storeNames}
+        setSelected={setSelected}
+        dropdownStyles={{backgroundColor: 'gray'}}
+        dropdownTextStyles={{color: 'white'}}
+        placeholder="Select store"
+        maxHeight={200}
+      />
+
       <TextInput
         style={[AppStyles.textInput, AppStyles.darkTextInput]}
-        value={getDate()}
-        placeholder="Set expiry date"
+        placeholder="Coupon ID"
+        value={coupon}
+        onChangeText={setCoupon}
       />
-      <Button onPress={showDatePicker} title="Set Date" />
-      <DateTimePickerModal
-        isVisible={isDatePickerVisible}
-        mode="date"
-        onConfirm={handleConfirm}
-        onCancel={hideDatePicker}
+
+      <Pressable onPress={() => setShow(true)}>
+        <Text style={[AppStyles.textInput, AppStyles.darkTextInput]}>
+          {isDateSet ? dateFormatter(date) : "Coupon Expiry Date"}
+        </Text>
+      </Pressable>
+
+      <TextInput
+        style={[AppStyles.textInput, AppStyles.darkTextInput]}
+        placeholder="Coupon Description"
+        value={description}
+        onChangeText={setDescription}
       />
-      <Text>{date.toString()}</Text>
-  
-      <View style={[AppStyles.rowContainer, AppStyles.rightAligned, AppStyles.rightMargin]}>
+      <View
+        style={[
+          AppStyles.rowContainer,
+          AppStyles.rightAligned,
+          AppStyles.rightMargin,
+        ]}
+      >
         <Button title="Cancel" onPress={props.onClose} />
-        <Button title="OK" onPress={() => {
-          props.addCoupon(coupon);
-          setCoupon("");
-          props.onClose();
-        }} />
+        <Button
+          title="OK"
+          onPress={() => {
+            props.addCoupon({
+              storeName: storeNames[selected - 1].value,
+              couponId: coupon,
+              validity: date,
+              desc: description,
+            });
+            setCoupon("");
+            props.onClose();
+          }}
+        />
       </View>
+
+      {show && (
+        <DateTimePicker
+          testID="dateTimePicker"
+          value={date}
+          mode={date}
+          display="default"
+          onChange={onDateChange}
+        />
+      )}
     </View>
   );
 }
