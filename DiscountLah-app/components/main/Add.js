@@ -158,10 +158,14 @@ export default function AddCoupon() {
     );
   };
 
-  let addCoupon = async (coupon) => {
+  let addCoupon = async (couponData) => {
     console.log("add coupon");
     let couponToSave = {
-      text: coupon,
+      text: couponData.storeName,
+      couponId: couponData.couponId,
+      storeName: couponData.storeName,
+      desc: couponData.desc,
+      validity: couponData.validity,
       completed: false,
       userId: firebase.auth().currentUser.uid,
     };
