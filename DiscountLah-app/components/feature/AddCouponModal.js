@@ -25,7 +25,7 @@ export default function AddCouponModal(props) {
   let [selected, setSelected] = React.useState(0);
   let [store, setStore] = React.useState("");
   let [description, setDescription] = React.useState("");
-  let [validity, setValidity] = React.useState("");
+  //let [validity, setValidity] = React.useState("");
 
   const [isDateSet, setIsDateSet] = React.useState(false);
   const [date, setDate] = React.useState(new Date());
