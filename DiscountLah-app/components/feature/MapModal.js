@@ -8,6 +8,7 @@ import {
   Button,
   Dimensions,
   Image,
+  ScrollView,
 } from "react-native";
 
 import firebase from "firebase";
@@ -15,16 +16,53 @@ import firebase from "firebase";
 export default class MapModal extends React.Component {
   state = {
     storeName: this.props.marker.storeName,
-    storeImage: this.props.marker.storeImage,
-    validity: this.props.marker.validity,
-    desc: this.props.marker.desc,
+    storeImage: this.props.marker.storeImg,
+    address: this.props.marker.address,
+    coupons: [],
+    searchedCoupons: false,
   };
+
+  componentDidMount() {
+    if (!this.state.searchedCoupons) {
+      
+    let tempArray = [];
+
+    firebase
+      .firestore()
+      .collection("coupons")
+      .where("userId", "==", firebase.auth().currentUser.uid)
+      .get()
+      .then((querySnapshot) => {
+        if (querySnapshot) {
+          querySnapshot.forEach((doc) => {
+            // doc.data() is never undefined for query doc snapshots
+            if (doc.data().storeName === this.state.storeName) {
+              tempArray.push(doc.data());
+            }
+          });
+        }
+      });
+    
+    this.setState({
+      storeName: this.state.storeName,
+      storeImage: this.state.storeImage,
+      address: this.state.address,
+      coupons: tempArray,
+      searchedCoupons: true
+    })
+    }
+  }
 
   render() {
     console.log(this.props.marker);
     console.log(this.state.storeImage);
     const { width, height } = Dimensions.get("window");
-    
+
+    const currentUser = firebase.auth().currentUser;
+    if (!currentUser) {
+      return <View></View>;
+    }
+
     return (
       <View style={styles.modalBackground}>
         <View style={styles.modalContainer}>
@@ -34,26 +72,35 @@ export default class MapModal extends React.Component {
             resizeMode="cover"
           />
           <View style={styles.textContent}>
-          <Text style={styles.cardtitle}>{this.state.storeName}</Text>
-          <Text style={styles.cardDescription}>{this.state.desc}</Text>
+            <Text style={styles.cardtitle}>{this.state.storeName}</Text>
+            <Text style={styles.cardDescription}>{this.state.address}</Text>
           </View>
+          <ScrollView>
+            {this.state.coupons.map((coupon) => {
+              return (
+                <View>
+                  <Text>{"Coupon ID: " + coupon.couponId}</Text>
+                  <Text>{coupon.desc}</Text>
+                  <Text>{"Valid Until: " + coupon.validity.toString()}</Text>
+                </View>
+              );
+            })}
+          </ScrollView>
           <View style={styles.buttonContent}>
-          <TouchableOpacity
-            style={[
-              styles.couponButton,
-              {
-                borderColor: "#FF6347",
-                borderWidth: 1,
-              },
-            ]}
-            onPress={this.props.closeModal}
-          >
-          
-            <Text style={[styles.buttonText, { color: "#ff6347" }]}>
-              Back to map
-            </Text>
-          </TouchableOpacity>
-          
+            <TouchableOpacity
+              style={[
+                styles.couponButton,
+                {
+                  borderColor: "#FF6347",
+                  borderWidth: 1,
+                },
+              ]}
+              onPress={this.props.closeModal}
+            >
+              <Text style={[styles.buttonText, { color: "#ff6347" }]}>
+                Back to map
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -146,5 +193,5 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 40,
     top: 10,
-  }
+  },
 });

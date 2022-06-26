@@ -23,7 +23,7 @@ import {
 } from "@expo-google-fonts/dev";
 
 import Data from "../data/Data";
-import MapModal from "../feature/MapModal"
+import MapModal from "../feature/MapModal";
 
 const { width, height } = Dimensions.get("window");
 const CARD_HEIGHT = 250;
@@ -38,6 +38,9 @@ export default function Map() {
 
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [modalData, setModalData] = useState(null);
+
+  const [isDistancesSorted, setIsDistancesSorted] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [position, setPosition] = useState({
     latitude: -6,
@@ -60,12 +63,12 @@ export default function Map() {
   let markerCounter = -1;
   let cardCounter = -1;
 
-  let distances = [];
+  let [distances, setDistance] = React.useState([]);
 
   const currentUser = firebase.auth().currentUser;
 
   if (currentUser === undefined) {
-    return <View></View>
+    return <View></View>;
   }
 
   useEffect(() => {
@@ -103,8 +106,8 @@ export default function Map() {
           mapIndex = index;
           currMap.current.animateToRegion(
             {
-              latitude: Data[distances[index][1] - 1].coordinate.latitude,
-              longitude: Data[distances[index][1] - 1].coordinate.longitude,
+              latitude: LocationMarkers[distances[index][1] - 1].latitude,
+              longitude: LocationMarkers[distances[index][1] - 1].longitude,
               latitudeDelta: position.latitudeDelta,
               longitudeDelta: position.longitudeDelta,
             },
@@ -121,17 +124,58 @@ export default function Map() {
     currScrollView.current.scrollTo({ x: x, y: 0, animated: true });
   };
 
-
   if (errorMsg) {
     console.log(errorMsg);
   }
 
+  let presentStores = new Set();
+
   if (location) {
-    distances = LocationMarkers.map((marker) => {
-      return [
-        Math.sqrt(Math.pow(marker.coordinate.latitude - position.latitude, 2) + Math.pow(marker.coordinate.longitude - position.longitude, 2)),
-        marker.index,
-      ];
+    firebase
+      .firestore()
+      .collection("coupons")
+      .where("userId", "==", firebase.auth().currentUser.uid)
+      .get()
+      .then((querySnapshot) => {
+        if (querySnapshot) {
+          querySnapshot.forEach((doc) => {
+            // doc.data() is never undefined for query doc snapshots
+            if (
+              doc.data().storeName !== "" &&
+              doc.data().storeName !== undefined
+            ) {
+              presentStores.add(doc.data().storeName);
+              console.log("Firebase: " + doc.data().storeName);
+            }
+          });
+        }
+      })
+      .then(() => setDistances())
+      .catch((error) => {
+        console.log("Error getting documents: ", error);
+      });
+    
+  }
+
+  const setDistances = () => {
+    let tempIndex = 0;
+    let sizeCounter = 0;
+    LocationMarkers.map((marker) => {
+      if (presentStores.has(marker.storeName)) {
+        sizeCounter = sizeCounter + 1;
+      }
+    });
+    let tempDistance = Array(sizeCounter).fill(null).map(() => Array(4))
+    LocationMarkers.map((marker) => {
+      if (presentStores.has(marker.storeName)) {
+        tempDistance[tempIndex][0] =
+          Math.sqrt(
+            Math.pow(marker.latitude - position.latitude, 2) +
+              Math.pow(marker.longitude - position.longitude, 2)
+          );
+        tempDistance[tempIndex][1] = marker.index;
+        tempIndex = tempIndex + 1;
+      }
     });
 
     function sorter(a, b) {
@@ -141,10 +185,14 @@ export default function Map() {
       return a[0] < b[0] ? -1 : 1;
     }
 
-    distances.sort(sorter);
-  }
+    tempDistance.sort(sorter);  
+    setDistance(tempDistance);
+    if (distances !== []) {
+      setIsLoading(false);
+    }
+  };
 
-  if (!fontsLoaded || !location) {
+  if (!fontsLoaded || !location || isLoading) {
     return null;
   } else {
     return (
@@ -171,19 +219,23 @@ export default function Map() {
             strokeColor={"#49a6f2"}
             fillColor={"rgba(73, 166, 242, 0.1)"}
           />
+          {console.log("Distances:" + distances.join())}
           {distances.map((sortedMarker) => {
-            const marker = Data[sortedMarker[1] - 1];
-            markerCounter = markerCounter + 1
+            const marker = LocationMarkers[sortedMarker[1] - 1];
+            markerCounter = markerCounter + 1;
             return (
               <Marker
                 key={markerCounter}
-                coordinate={marker.coordinate}
+                coordinate={{
+                  latitude: marker.latitude,
+                  longitude: marker.longitude,
+                }}
                 title={marker.storeName}
-                description={marker.desc}
+                description={marker.address}
                 onPress={(e) => onMarkerPress(e)}
               ></Marker>
             );
-          })}
+          } ) }
         </MapView>
 
         <Animated.ScrollView
@@ -206,21 +258,18 @@ export default function Map() {
           )}
         >
           {distances.map((sortedMarker) => {
-            const marker = Data[sortedMarker[1] - 1];
-            cardCounter = cardCounter + 1
+            const marker = LocationMarkers[sortedMarker[1] - 1];
+            cardCounter = cardCounter + 1;
             return (
               <View style={styles.card} key={cardCounter}>
                 <Image
-                  source={marker.storeImage}
+                  source={marker.storeImg}
                   style={styles.cardImage}
                   resizeMode="cover"
                 />
                 <View style={styles.textContent}>
                   <Text style={styles.cardtitle}>{marker.storeName}</Text>
-                  <Text styles={styles.cardDescription}>{marker.desc}</Text>
-                  <Text styles={styles.cardValidity}>
-                    {"Valid until " + marker.validity}
-                  </Text>
+                  <Text style={styles.cardDescription}>{marker.address}</Text>
                   <View style={styles.button}>
                     <TouchableOpacity
                       onPress={() => {
@@ -235,7 +284,7 @@ export default function Map() {
                         },
                       ]}
                     >
-                      <Text style={[styles.buttonText, { color: '#ff6347',},]}>
+                      <Text style={[styles.buttonText, { color: "#ff6347" }]}>
                         Use Coupon
                       </Text>
                     </TouchableOpacity>
@@ -245,8 +294,16 @@ export default function Map() {
             );
           })}
         </Animated.ScrollView>
-        <Modal visible={modalIsOpen} transparent={true} onRequestClose={() => setModalIsOpen(false)} style={styles.modalBackground}>
-          <MapModal marker={modalData} closeModal={() => setModalIsOpen(false)} />
+        <Modal
+          visible={modalIsOpen}
+          transparent={true}
+          onRequestClose={() => setModalIsOpen(false)}
+          style={styles.modalBackground}
+        >
+          <MapModal
+            marker={modalData}
+            closeModal={() => setModalIsOpen(false)}
+          />
         </Modal>
       </View>
     );
@@ -330,8 +387,8 @@ const styles = StyleSheet.create({
   },
   modalBackground: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: "rgba(0,0,0,0.5)",
     justifyContent: "center",
     alignItems: "center",
-  }
+  },
 });
