@@ -4,12 +4,6 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import * as firebase from "firebase";
 
-import { Provide, Provider } from 'react-redux';
-import { createStore, applyMiddleware } from 'redux';
-import rootReducer from './redux/reducers'
-import thunk from 'redux-thunk'
-
-const store = createStore(rootReducer, applyMiddleware(thunk))
 
 const firebaseConfig = {
   apiKey: "AIzaSyDsiPaWC_Q6noWyZ4-j20Zgk8W5_JIvqm4",
@@ -25,6 +19,13 @@ if (firebase.apps.length === 0) {
   firebase.initializeApp(firebaseConfig);
 }
 
+import { Provide, Provider } from 'react-redux';
+import { createStore, applyMiddleware } from 'redux';
+import rootReducer from './redux/reducers'
+import thunk from 'redux-thunk'
+
+const store = createStore(rootReducer, applyMiddleware(thunk))
+
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 
@@ -34,6 +35,7 @@ import RegisterScreen from "./components/auth/Register"
 
 import MainScreen from './components/Main'
 import AddScreen from './components/main/Add'
+
 
 const Stack = createStackNavigator();
 
