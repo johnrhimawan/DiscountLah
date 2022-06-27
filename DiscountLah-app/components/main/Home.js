@@ -16,7 +16,6 @@ export default function Home() {
   let getExpiringCoupons = async () => {
     console.log("getting expiring coupons");
     let expiringCoupons = [];
-
     firebase
       .firestore()
       .collection("coupons")
@@ -75,6 +74,7 @@ export default function Home() {
 
   let showCouponList = () => {
     console.log("show coupon");
+    console.log(today);
     return (
       <FlatList
         data={expiringCoupons}
