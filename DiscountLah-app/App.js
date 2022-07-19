@@ -36,7 +36,6 @@ import RegisterScreen from "./components/auth/Register"
 import MainScreen from './components/Main'
 import AddScreen from './components/main/Add'
 
-
 const Stack = createStackNavigator();
 
 export class App extends Component {

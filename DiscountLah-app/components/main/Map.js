@@ -135,8 +135,11 @@ export default function Map() {
       .firestore()
       .collection("coupons")
       .where("userId", "==", firebase.auth().currentUser.uid)
+      .limit(1)
       .get()
       .then((querySnapshot) => {
+        console.log(querySnapshot)
+        console.log(querySnapshot.length)
         if (querySnapshot) {
           querySnapshot.forEach((doc) => {
             // doc.data() is never undefined for query doc snapshots
@@ -145,7 +148,7 @@ export default function Map() {
               doc.data().storeName !== undefined
             ) {
               presentStores.add(doc.data().storeName);
-              console.log("Firebase: " + doc.data().storeName);
+              // console.log("Firebase: " + doc.data().storeName);
             }
           });
         }
@@ -219,7 +222,6 @@ export default function Map() {
             strokeColor={"#49a6f2"}
             fillColor={"rgba(73, 166, 242, 0.1)"}
           />
-          {console.log("Distances:" + distances.join())}
           {distances.map((sortedMarker) => {
             const marker = LocationMarkers[sortedMarker[1] - 1];
             markerCounter = markerCounter + 1;

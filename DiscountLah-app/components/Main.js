@@ -60,13 +60,13 @@ export class Main extends Component {
                         ),
                     }}
                 />
-                <Tab.Screen name="Coupons" component={CouponScreen} 
+                {/* <Tab.Screen name="Coupons" component={CouponScreen} 
                     options={{
                         tabBarIcon:({ color, size}) => (
                             <MaterialCommunityIcons name="tag-text" color={color} size={26} />
                         ),
                     }}
-                />
+                /> */}
                 <Tab.Screen name="Profile" component={ProfileScreen} 
                     options={{
                         tabBarIcon:({ color, size}) => (

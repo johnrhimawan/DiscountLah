@@ -25,6 +25,7 @@ export class Login extends Component {
     this.state = {
       email: "",
       password: "",
+      isValid: true,
     };
     this.onSignUp = this.onSignUp.bind(this);
   }
@@ -36,9 +37,19 @@ export class Login extends Component {
       .signInWithEmailAndPassword(email, password)
       .then((result) => {
         console.log(result);
+        this.setState({
+          email: this.state.email,
+          password: this.state.password,
+          isValid: true,
+        })
       })
       .catch((error) => {
         console.log(error);
+        this.setState({
+          email: this.state.email,
+          password: "",
+          isValid: false,
+        })
       });
   }
 
@@ -65,7 +76,8 @@ export class Login extends Component {
             onChangeText={(password) => this.setState({ password })}
             style={styles.textinput}
           />
-          <Pressable style={styles.button} onPress={() => this.onSignUp()}>
+          <Text style={{color: "#ff0000"}}>{this.state.isValid ? "" : "Incorrect Email or Password"}</Text>
+          <Pressable style={styles.button} onPress={() => this.onSignUp()} testId="Login.Button">
             <Text style={styles.text}> Login </Text>
           </Pressable>
         </View>

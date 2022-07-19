@@ -20,7 +20,7 @@ import {
   doc,
   setDoc,
 } from "firebase/firestore";
-import React from "react";
+import React, { useEffect } from "react";
 import AddCouponModal from "../feature/AddCouponModal";
 import BouncyCheckbox from "react-native-bouncy-checkbox";
 
@@ -42,9 +42,6 @@ export default function AddCoupon() {
       .collection("coupons")
       .where("userId", "==", firebase.auth().currentUser.uid)
       .get()
-      .then(() => {
-        console.log("this got executed now");
-      })
       .then((querySnapshot) => {
         console.log(querySnapshot);
         if (querySnapshot) {
@@ -188,6 +185,10 @@ export default function AddCoupon() {
 
     setCoupons(updatedCoupons);
   };
+
+  useEffect(() => {
+    loadCouponList()
+  }, [])
 
   if (isLoading) {
     return null;
