@@ -11,7 +11,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import HomeScreen from './main/Home'
 import ProfileScreen from './main/Profile'
 import AddScreen from './main/Add'
-import CouponScreen from './main/Coupons'
+import ForumScreen from './main/Forum'
 import MapScreen from './main/Map'
 
 const Tab = createBottomTabNavigator();
@@ -60,13 +60,13 @@ export class Main extends Component {
                         ),
                     }}
                 />
-                {/* <Tab.Screen name="Coupons" component={CouponScreen} 
+                <Tab.Screen name="Forum" component={ForumScreen} 
                     options={{
                         tabBarIcon:({ color, size}) => (
                             <MaterialCommunityIcons name="tag-text" color={color} size={26} />
                         ),
                     }}
-                /> */}
+                />
                 <Tab.Screen name="Profile" component={ProfileScreen} 
                     options={{
                         tabBarIcon:({ color, size}) => (

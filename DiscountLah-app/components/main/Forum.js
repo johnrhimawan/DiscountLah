@@ -7,7 +7,7 @@ import {
   Sunflower_700Bold,
 } from "@expo-google-fonts/dev";
 
-export default function Coupons() {
+export default function Forum() {
   let [fontsLoaded] = useFonts({
     Sunflower_500Medium,
     Sunflower_700Bold,
@@ -28,7 +28,7 @@ export default function Coupons() {
           marginBottom: 5,
         }}
       >
-        Coupons
+        Forum
       </Text>
       <Text
         style={{
@@ -41,7 +41,7 @@ export default function Coupons() {
           marginBottom: 10,
         }}
       >
-        Here, users can view the coupons that they currently have.
+        Here, users can discuss with each other the best deals through this forum.
       </Text>
     </View>
   );
