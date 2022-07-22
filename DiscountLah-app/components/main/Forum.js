@@ -1,5 +1,5 @@
-import React, {useState} from 'react';
-import Chat from './Chat';
+import React, { useState } from "react";
+import Chat from "./Chat";
 import {
   getDatabase,
   get,
@@ -8,7 +8,7 @@ import {
   onValue,
   push,
   update,
-} from 'firebase/database';
+} from "firebase/database";
 
 export default function Forum() {
   const [myData, setMyData] = useState(null);
@@ -26,7 +26,7 @@ export default function Forum() {
       } else {
         const newUserObj = {
           username: username,
-          avatar: 'https://i.pravatar.cc/150?u=' + Date.now(),
+          avatar: "https://i.pravatar.cc/150?u=" + Date.now(),
         };
 
         set(ref(database, `users/${username}`), newUserObj);
@@ -35,21 +35,68 @@ export default function Forum() {
 
       // set friends list change listener
       const myUserRef = ref(database, `users/${username}`);
-      onValue(myUserRef, snapshot => {
+      onValue(myUserRef, (snapshot) => {
         const data = snapshot.val();
         setUsers(data.friends);
-        setMyData(prevData => ({
+        setMyData((prevData) => ({
           ...prevData,
           friends: data.friends,
         }));
       });
-      setCurrentPage('users');
+      setCurrentPage("users");
     } catch (error) {
       console.error(error);
     }
   };
 
-  const findUser = async name => {
+  // const userId = firebase.auth().currentUser.uid
+  // const [username, setUsername] = React.useState("")
+
+  // // Gets the name of the current user by using the id of the current user
+
+  // const onLogin = async () => {
+  // firebase
+  //   .firestore()
+  //   .collection("users")
+  //   .doc(firebase.auth().currentUser.uid)
+  //   .get()
+  //   .then((doc) => {
+  //     if (doc) {
+  //       setUsername(doc.data().name)
+  //     }
+  //   })
+  //   .catch((error) => {
+  //     console.log("Error getting documents: ", error);
+  //   });
+  // }
+
+  // Finds a user by display name
+
+  // const [queryUsers, setQueryUsers] = React.useState([]);
+
+  // const findUser = async (name) => {
+  //   const queryUsers = [];
+  //   firebase
+  //     .firestore()
+  //     .collection("users")
+  //     .where("name", "==", name)
+  //     .get()
+  //     .then((querySnapshot) => {
+  //       if (querySnapshot) {
+  //         querySnapshot.forEach((doc) => {
+  //           // doc.data() is never undefined for query doc snapshots
+  //           queryUsers.push(doc);
+  //         });
+  //       }
+  //     })
+  //     .catch((err) => {
+  //       console.log("error getting documents: " + err);
+  //     });
+
+  //   setQueryUsers(queryUsers);
+  // };
+
+  const findUser = async (name) => {
     const database = getDatabase();
 
     const mySnapshot = await get(ref(database, `users/${name}`));
@@ -57,12 +104,12 @@ export default function Forum() {
     return mySnapshot.val();
   };
 
-  const onClickUser = user => {
-    setCurrentPage('chat');
+  const onClickUser = (user) => {
+    setCurrentPage("chat");
     setSelectedUser(user);
   };
 
-  const onAddFriend = async name => {
+  const onAddFriend = async (name) => {
     try {
       //find user and add it to my friends and also add me to his friends
       const database = getDatabase();
@@ -77,7 +124,7 @@ export default function Forum() {
 
         if (
           myData.friends &&
-          myData.friends.findIndex(f => f.username === user.username) > 0
+          myData.friends.findIndex((f) => f.username === user.username) > 0
         ) {
           // don't let user add a user twice
           return;
@@ -85,7 +132,7 @@ export default function Forum() {
 
         // create a chatroom and store the chatroom id
 
-        const newChatroomRef = push(ref(database, 'chatrooms'), {
+        const newChatroomRef = push(ref(database, "chatrooms"), {
           firstUser: myData.username,
           secondUser: user.username,
           messages: [],
@@ -125,11 +172,11 @@ export default function Forum() {
   };
 
   const onBack = () => {
-    setCurrentPage('users');
+    setCurrentPage("users");
   };
 
   switch (currentPage) {
-    case 'login':
+    case "login":
       return (
         <Login
           onLogin={onLogin}
@@ -137,7 +184,7 @@ export default function Forum() {
           setUsername={setUsername}
         />
       );
-    case 'users':
+    case "users":
       return (
         <Users
           users={users}
@@ -147,7 +194,7 @@ export default function Forum() {
           onAddFriend={onAddFriend}
         />
       );
-    case 'chat':
+    case "chat":
       return (
         <Chat myData={myData} selectedUser={selectedUser} onBack={onBack} />
       );
