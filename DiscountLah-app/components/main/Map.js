@@ -235,6 +235,7 @@ export default function Map() {
                 title={marker.storeName}
                 description={marker.address}
                 onPress={(e) => onMarkerPress(e)}
+                tracksViewChanges={false}
               ></Marker>
             );
           } ) }
