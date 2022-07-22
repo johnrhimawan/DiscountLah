@@ -1,204 +1,62 @@
-import React, { useState } from "react";
-import Chat from "./Chat";
-import {
-  getDatabase,
-  get,
-  ref,
-  set,
-  onValue,
-  push,
-  update,
-} from "firebase/database";
+// @refresh reset
+
+import React, { useState, useEffect, useCallback } from 'react'
+import { GiftedChat } from 'react-native-gifted-chat'
+import { StyleSheet, TextInput, View, Button } from 'react-native'
+import * as firebase from 'firebase'
+import 'firebase/firestore'
+
 
 export default function Forum() {
-  const [myData, setMyData] = useState(null);
+    const chatsRef = firebase.firestore().collection('chats')
+    const [messages, setMessages] = useState([])
 
-  const onLogin = async () => {
-    try {
-      const database = getDatabase();
-      //first check if the user registered before
+    useEffect(() => {
+        const unsubscribe = chatsRef.onSnapshot((querySnapshot) => {
+            const messagesFirestore = querySnapshot
+                .docChanges()
+                .filter(({ type }) => type === 'added')
+                .map(({ doc }) => {
+                    const message = doc.data()
+                    //createdAt is firebase.firestore.Timestamp instance
+                    //https://firebase.google.com/docs/reference/js/firebase.firestore.Timestamp
+                    return { ...message, createdAt: message.createdAt.toDate() }
+                })
+                .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+            appendMessages(messagesFirestore)
+        })
+        return () => unsubscribe()
+    }, [])
 
-      const user = await findUser(username);
+    const appendMessages = useCallback(
+        (messages) => {
+            setMessages((previousMessages) => GiftedChat.append(previousMessages, messages))
+        },
+        [messages]
+    )
 
-      //create a new user if not registered
-      if (user) {
-        setMyData(user);
-      } else {
-        const newUserObj = {
-          username: username,
-          avatar: "https://i.pravatar.cc/150?u=" + Date.now(),
-        };
-
-        set(ref(database, `users/${username}`), newUserObj);
-        setMyData(newUserObj);
-      }
-
-      // set friends list change listener
-      const myUserRef = ref(database, `users/${username}`);
-      onValue(myUserRef, (snapshot) => {
-        const data = snapshot.val();
-        setUsers(data.friends);
-        setMyData((prevData) => ({
-          ...prevData,
-          friends: data.friends,
-        }));
-      });
-      setCurrentPage("users");
-    } catch (error) {
-      console.error(error);
+    async function handleSend(messages) {
+        const writes = messages.map((m) => chatsRef.add(m))
+        await Promise.all(writes)
     }
-  };
 
-  // const userId = firebase.auth().currentUser.uid
-  // const [username, setUsername] = React.useState("")
-
-  // // Gets the name of the current user by using the id of the current user
-
-  // const onLogin = async () => {
-  // firebase
-  //   .firestore()
-  //   .collection("users")
-  //   .doc(firebase.auth().currentUser.uid)
-  //   .get()
-  //   .then((doc) => {
-  //     if (doc) {
-  //       setUsername(doc.data().name)
-  //     }
-  //   })
-  //   .catch((error) => {
-  //     console.log("Error getting documents: ", error);
-  //   });
-  // }
-
-  // Finds a user by display name
-
-  // const [queryUsers, setQueryUsers] = React.useState([]);
-
-  // const findUser = async (name) => {
-  //   const queryUsers = [];
-  //   firebase
-  //     .firestore()
-  //     .collection("users")
-  //     .where("name", "==", name)
-  //     .get()
-  //     .then((querySnapshot) => {
-  //       if (querySnapshot) {
-  //         querySnapshot.forEach((doc) => {
-  //           // doc.data() is never undefined for query doc snapshots
-  //           queryUsers.push(doc);
-  //         });
-  //       }
-  //     })
-  //     .catch((err) => {
-  //       console.log("error getting documents: " + err);
-  //     });
-
-  //   setQueryUsers(queryUsers);
-  // };
-
-  const findUser = async (name) => {
-    const database = getDatabase();
-
-    const mySnapshot = await get(ref(database, `users/${name}`));
-
-    return mySnapshot.val();
-  };
-
-  const onClickUser = (user) => {
-    setCurrentPage("chat");
-    setSelectedUser(user);
-  };
-
-  const onAddFriend = async (name) => {
-    try {
-      //find user and add it to my friends and also add me to his friends
-      const database = getDatabase();
-
-      const user = await findUser(name);
-
-      if (user) {
-        if (user.username === myData.username) {
-          // don't let user add himself
-          return;
-        }
-
-        if (
-          myData.friends &&
-          myData.friends.findIndex((f) => f.username === user.username) > 0
-        ) {
-          // don't let user add a user twice
-          return;
-        }
-
-        // create a chatroom and store the chatroom id
-
-        const newChatroomRef = push(ref(database, "chatrooms"), {
-          firstUser: myData.username,
-          secondUser: user.username,
-          messages: [],
-        });
-
-        const newChatroomId = newChatroomRef.key;
-
-        const userFriends = user.friends || [];
-        //join myself to this user friend list
-        update(ref(database, `users/${user.username}`), {
-          friends: [
-            ...userFriends,
-            {
-              username: myData.username,
-              avatar: myData.avatar,
-              chatroomId: newChatroomId,
-            },
-          ],
-        });
-
-        const myFriends = myData.friends || [];
-        //add this user to my friend list
-        update(ref(database, `users/${myData.username}`), {
-          friends: [
-            ...myFriends,
-            {
-              username: user.username,
-              avatar: user.avatar,
-              chatroomId: newChatroomId,
-            },
-          ],
-        });
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const onBack = () => {
-    setCurrentPage("users");
-  };
-
-  switch (currentPage) {
-    case "login":
-      return (
-        <Login
-          onLogin={onLogin}
-          username={username}
-          setUsername={setUsername}
-        />
-      );
-    case "users":
-      return (
-        <Users
-          users={users}
-          onClickUser={onClickUser}
-          userToAdd={userToAdd}
-          setUserToAdd={setUserToAdd}
-          onAddFriend={onAddFriend}
-        />
-      );
-    case "chat":
-      return (
-        <Chat myData={myData} selectedUser={selectedUser} onBack={onBack} />
-      );
-    default:
-      return null;
-  }
+    return <GiftedChat messages={messages} onSend={handleSend} />
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#fff',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 30,
+    },
+    input: {
+        height: 50,
+        width: '100%',
+        borderWidth: 1,
+        padding: 15,
+        marginBottom: 20,
+        borderColor: 'gray',
+    },
+})

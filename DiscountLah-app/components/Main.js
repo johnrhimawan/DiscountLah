@@ -60,6 +60,7 @@ export class Main extends Component {
                         ),
                     }}
                 />
+            
                 <Tab.Screen name="Forum" component={ForumScreen} 
                     options={{
                         tabBarIcon:({ color, size}) => (
@@ -67,6 +68,7 @@ export class Main extends Component {
                         ),
                     }}
                 />
+        
                 <Tab.Screen name="Profile" component={ProfileScreen} 
                     options={{
                         tabBarIcon:({ color, size}) => (
