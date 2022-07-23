@@ -25,7 +25,7 @@ import React, { useEffect } from "react";
 import AddCouponModal from "../feature/AddCouponModal";
 import BouncyCheckbox from "react-native-bouncy-checkbox";
 
-export default function Home() {
+export default function Home({navigation}) {
   let [isLoading, setIsLoading] = React.useState(true);
   let [isNameLoading, setIsNameLoading] = React.useState(true);
   let [isRefreshing, setIsRefreshing] = React.useState(false);
@@ -141,6 +141,13 @@ export default function Home() {
     getName()
     loadCouponList()
   }, [])
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      console.log('Refreshed');
+    });
+    return unsubscribe;
+  }, [navigation]);
 
   let getName = async () => {
     firebase

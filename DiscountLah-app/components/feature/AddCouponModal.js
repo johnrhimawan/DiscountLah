@@ -12,6 +12,9 @@ import AppStyles from "../../styles/AppStyles";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import SelectList from "react-native-dropdown-select-list";
 
+import * as Notifications from "expo-notifications"
+import { BigShouldersDisplay_200ExtraLight } from "@expo-google-fonts/dev";
+
 const storeNames = [
   {key:1, value:'Boost'},
   {key:2, value:'Don Don Donki'},
@@ -30,6 +33,29 @@ export default function AddCouponModal(props) {
   const [isDateSet, setIsDateSet] = React.useState(false);
   const [date, setDate] = React.useState(new Date());
   const [show, setShow] = React.useState(false);
+
+  const [schedule, setSchedule] = React.useState({});
+
+  let assignSchedule = () => {
+    const trigger = new Date(date - 24 * 60 * 60 * 1000);
+    trigger.setMinutes(0);
+    trigger.setSeconds(0);
+
+    let body = "Your coupon for " + store + " is expiring in 24 hours. Grab your deals soon!"
+
+    let schedule = {
+      content: {
+        title: "Coupon expiring soon!",
+        body: body,
+      },
+      trigger,
+      data: {
+        couponId: coupon,
+      }
+    }
+    
+    setSchedule(schedule)
+  };
 
   const onDateChange = (event, selectedDate) => {
     const currentDate = selectedDate || date;
@@ -98,11 +124,13 @@ export default function AddCouponModal(props) {
         <Button
           title="OK"
           onPress={() => {
+            assignSchedule()
             props.addCoupon({
               storeName: storeNames[selected - 1].value,
               couponId: coupon,
               validity: date,
               desc: description,
+              schedule: schedule,
             });
             setCoupon("");
             props.onClose();

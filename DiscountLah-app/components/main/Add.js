@@ -24,6 +24,8 @@ import React, { useEffect } from "react";
 import AddCouponModal from "../feature/AddCouponModal";
 import BouncyCheckbox from "react-native-bouncy-checkbox";
 
+import * as Notifications from "expo-notifications";
+
 export default function AddCoupon() {
   let [modalVisible, setModalVisible] = React.useState(false);
   let [isLoading, setIsLoading] = React.useState(true);
@@ -32,6 +34,40 @@ export default function AddCoupon() {
   let [querySnapshot, setQuerySnapshot] = React.useState(null);
   let [deletedDoc, setDeletedDoc] = React.useState(null);
   let [docRef, setDocRef] = React.useState(null);
+
+  async function schedulePushNotification() {
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: "You've got mail! 📬",
+        body: "Here is the notification body",
+        data: { data: "goes here" },
+      },
+      trigger: { seconds: 2 },
+    });
+  }
+
+  let scheduleNotification = async () => {
+    const trigger = new Date(Date.now() + 60 * 60 * 1000);
+    trigger.setMinutes(0);
+    trigger.setSeconds(0);
+
+    Notifications.scheduleNotificationAsync({
+      content: {
+        title: "Happy new hour!",
+      },
+      trigger,
+    });
+  };
+
+  async function scheduleAndCancel() {
+    const identifier = await Notifications.scheduleNotificationAsync({
+      content: {
+        title: "Hey!",
+      },
+      trigger: { seconds: 60, repeats: true },
+    });
+    await Notifications.cancelScheduledNotificationAsync(identifier);
+  }
 
   let loadCouponList = async () => {
     console.log("load coupon");
@@ -78,20 +114,44 @@ export default function AddCoupon() {
 
   let deleteCoupon = async (couponId) => {
     console.log("delete coupon");
+
+    let schedule = {};
+
+    firebase
+      .firestore()
+      .collection("coupons")
+      .doc(couponId)
+      .get()
+      .then((doc) => {
+        if (doc.data().schedule) {
+          schedule = doc.data().schedule;
+        }
+      })
+      .catch((err) => {
+        console.error("Error retrieving schedule: ", err);
+      });
+
     firebase
       .firestore()
       .collection("coupons")
       .doc(couponId)
       .delete()
-      .then(() => { console.log("Document successfully deleted!");})
+      .then(() => {
+        console.log("Document successfully deleted!");
+      })
       .catch((error) => {
         console.error("Error removing document: ", error);
-      })
+      });
     
+    removeSchedule(schedule);
     setDeletedDoc(couponId);
     let updatedCoupons = [...coupons].filter((item) => item.id != couponId);
     setCoupons(updatedCoupons);
   };
+
+  async function removeSchedule(schedule) {
+    await Notifications.cancelScheduledNotificationAsync(schedule);
+  }
 
   let renderCouponItem = ({ item }) => {
     console.log("render coupon");
@@ -165,6 +225,7 @@ export default function AddCoupon() {
       validity: couponData.validity,
       completed: false,
       userId: firebase.auth().currentUser.uid,
+      schedule: couponData.schedule,
     };
 
     firebase
@@ -187,8 +248,8 @@ export default function AddCoupon() {
   };
 
   useEffect(() => {
-    loadCouponList()
-  }, [])
+    loadCouponList();
+  }, []);
 
   if (isLoading) {
     return null;
@@ -208,6 +269,13 @@ export default function AddCoupon() {
         </Modal>
         <Text style={AppStyles.header}>Coupon</Text>
         {showContent()}
+        <Button
+          title="Press to schedule a notification"
+          onPress={async () => {
+            console.log("pressed");
+            await schedulePushNotification();
+          }}
+        />
       </SafeAreaView>
     );
   }
