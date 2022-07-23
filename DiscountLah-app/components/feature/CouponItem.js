@@ -17,7 +17,7 @@ const styles = StyleSheet.create({
 
 
 let timestampToDate = (timestamp) => {
-    return timestamp.getDate() + "/" + timestamp.getMonth() + '/' + timestamp.getFullYear()
+    return timestamp.getDate() + "/" + (timestamp.getMonth() + 1) + '/' + timestamp.getFullYear()
   }
 
 export default function CouponItem({ coupons, img }) {
