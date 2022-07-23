@@ -37,10 +37,13 @@ export default function Home() {
     console.log("load coupon");
     let coupons = [];
 
+    let today = new Date();
+
     firebase
       .firestore()
       .collection("coupons")
       .where("userId", "==", firebase.auth().currentUser.uid)
+      .where("validity", ">", today)
       .orderBy("validity")
       .limit(5)
       .get()
@@ -98,21 +101,31 @@ export default function Home() {
 
   let showCouponList = () => {
     console.log("show coupon");
-    return (
-      <View>
-      <CouponItem coupons={coupons} />
-      </View>
-      // <FlatList
-      //   data={coupons}
-      //   refreshing={isRefreshing}
-      //   onRefresh={() => {
-      //     loadCouponList();
-      //     setIsRefreshing(true);
-      //   }}
-      //   renderItem={renderCouponItem}
-      //   keyExtractor={(item) => item.id}
-      // />
-    );
+    if (coupons.length > 0) {
+      return (
+        <View>
+        <CouponItem coupons={coupons} />
+        </View>
+        // <FlatList
+        //   data={coupons}
+        //   refreshing={isRefreshing}
+        //   onRefresh={() => {
+        //     loadCouponList();
+        //     setIsRefreshing(true);
+        //   }}
+        //   renderItem={renderCouponItem}
+        //   keyExtractor={(item) => item.id}
+        // />
+      );
+    } else {
+      return (
+        <View>
+          <Text style={{marginTop: 20, fontSize: 18, marginLeft: 20,}}>
+            No Coupons to show :(
+          </Text>
+        </View>
+      )
+    }
   };
 
   let showContent = () => {

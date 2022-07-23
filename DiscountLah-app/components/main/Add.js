@@ -81,7 +81,7 @@ export default function AddCoupon() {
     firebase
       .firestore()
       .collection("coupons")
-      .doc("couponId")
+      .doc(couponId)
       .delete()
       .then(() => { console.log("Document successfully deleted!");})
       .catch((error) => {
