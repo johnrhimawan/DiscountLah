@@ -131,6 +131,7 @@ export default function AddCouponModal(props) {
               validity: date,
               desc: description,
               schedule: schedule,
+              barcodeData: {},
             });
             setCoupon("");
             props.onClose();

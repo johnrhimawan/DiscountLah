@@ -1,12 +1,15 @@
 import React from "react";
 import { View, Text, StyleSheet, Image, ScrollView } from "react-native";
 import { Divider } from "react-native-elements";
+import storeImages from "../data/StoreImages";
 
 const styles = StyleSheet.create({
   menuItemStyle: {
     flexDirection: "row",
     justifyContent: "space-between",
-    margin: 20,
+    marginLeft: 20,
+    marginTop: 7,
+    marginBottom: 7,
   },
 
   titleStyle: {
@@ -20,7 +23,7 @@ let timestampToDate = (timestamp) => {
     return timestamp.getDate() + "/" + timestamp.getMonth() + '/' + timestamp.getFullYear()
   }
 
-export default function CouponItem({ coupons, img }) {
+export default function AddCouponItem({ coupons, img }) {
   return (
     <ScrollView showsVerticalScrollIndicator={false}>
       {coupons.map((coupon, index) => (
@@ -48,15 +51,15 @@ const CouponInfo = (props) => (
   </View>
 );
 
-const CouponImage = ({ marginLeft, ...props }) => (
+const CouponImage = ({ marginRight, ...props }) => (
   <View>
     <Image
-      source={{ uri: props.img }}
+      source={storeImages[props.coupon.storeName]}
       style={{
         width: 100,
         height: 100,
         borderRadius: 8,
-        marginLeft: marginLeft,
+        marginRight: 30
       }}
     />
   </View>

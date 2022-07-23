@@ -26,6 +26,8 @@ import BouncyCheckbox from "react-native-bouncy-checkbox";
 
 import * as Notifications from "expo-notifications";
 
+import AddCouponItem from "../feature/AddCouponItem";
+
 export default function AddCoupon() {
   let [modalVisible, setModalVisible] = React.useState(false);
   let [isLoading, setIsLoading] = React.useState(true);
@@ -34,6 +36,8 @@ export default function AddCoupon() {
   let [querySnapshot, setQuerySnapshot] = React.useState(null);
   let [deletedDoc, setDeletedDoc] = React.useState(null);
   let [docRef, setDocRef] = React.useState(null);
+
+  let [pageNumber, setPageNumber] = React.useState(0);
 
   async function schedulePushNotification() {
     await Notifications.scheduleNotificationAsync({
@@ -77,13 +81,16 @@ export default function AddCoupon() {
       .firestore()
       .collection("coupons")
       .where("userId", "==", firebase.auth().currentUser.uid)
+      .orderBy("validity")
+      .startAt(pageNumber * 4)
+      .limit(4)
       .get()
       .then((querySnapshot) => {
-        console.log(querySnapshot);
+        // console.log(querySnapshot);
         if (querySnapshot) {
           querySnapshot.forEach((doc) => {
             // doc.data() is never undefined for query doc snapshots
-            console.log(doc.id, " => ", doc.data());
+            // console.log(doc.id, " => ", doc.data());
             let coupon = doc.data();
             coupon.id = doc.id;
             coupons.push(coupon);
@@ -142,7 +149,7 @@ export default function AddCoupon() {
       .catch((error) => {
         console.error("Error removing document: ", error);
       });
-    
+
     removeSchedule(schedule);
     setDeletedDoc(couponId);
     let updatedCoupons = [...coupons].filter((item) => item.id != couponId);
@@ -187,30 +194,56 @@ export default function AddCoupon() {
 
   let showCouponList = () => {
     console.log("show coupon");
-    return (
-      <FlatList
-        data={coupons}
-        refreshing={isRefreshing}
-        onRefresh={() => {
-          loadCouponList();
-          setIsRefreshing(true);
-        }}
-        renderItem={renderCouponItem}
-        keyExtractor={(item) => item.id}
-      />
-    );
+    if (coupons.length > 0) {
+      return (
+        <View>
+          <AddCouponItem coupons={coupons} />
+        </View>
+        // <FlatList
+        //   data={coupons}
+        //   refreshing={isRefreshing}
+        //   onRefresh={() => {
+        //     loadCouponList();
+        //     setIsRefreshing(true);
+        //   }}
+        //   renderItem={renderCouponItem}
+        //   keyExtractor={(item) => item.id}
+        // />
+      );
+    } else {
+      return (
+        <View>
+          <Text style={{ marginTop: 20, fontSize: 18, marginLeft: 20 }}>
+            No Coupons to show :(
+          </Text>
+        </View>
+      );
+    }
+    // console.log("show coupon");
+    // return (
+    //   <FlatList
+    //     data={coupons}
+    //     refreshing={isRefreshing}
+    //     onRefresh={() => {
+    //       loadCouponList();
+    //       setIsRefreshing(true);
+    //     }}
+    //     renderItem={renderCouponItem}
+    //     keyExtractor={(item) => item.id}
+    //   />
+    // );
   };
 
   let showContent = () => {
     console.log("show content");
     return (
       <View>
-        {isLoading ? <ActivityIndicator size="large" /> : showCouponList()}
         <Button
           title="Add Coupon"
           onPress={() => setModalVisible(true)}
           color="#fb4d3d"
         />
+        {isLoading ? <ActivityIndicator size="large" /> : showCouponList()}
       </View>
     );
   };
@@ -226,6 +259,8 @@ export default function AddCoupon() {
       completed: false,
       userId: firebase.auth().currentUser.uid,
       schedule: couponData.schedule,
+      used: false,
+      barcodeData: couponData.barcodeData,
     };
 
     firebase
@@ -267,15 +302,40 @@ export default function AddCoupon() {
             addCoupon={addCoupon}
           />
         </Modal>
-        <Text style={AppStyles.header}>Coupon</Text>
+        <Text
+          style={{
+            marginTop: 20,
+            fontWeight: "bold",
+            fontSize: 20,
+            marginLeft: 20,
+          }}
+        >
+          Coupon
+        </Text>
         {showContent()}
         <Button
+          title="Back"
+          onPress={() => {
+            setPageNumber(pageNumber === 0 ? 0 : pageNumber - 1);
+            console.log(pageNumber)
+            loadCouponList();
+          }}
+        />
+        <Button
+          title="Next"
+          onPress={() => {
+            setPageNumber(pageNumber + 1);
+            console.log(pageNumber)
+            loadCouponList();
+          }}
+        />
+        {/* <Button
           title="Press to schedule a notification"
           onPress={async () => {
             console.log("pressed");
             await schedulePushNotification();
           }}
-        />
+        /> */}
       </SafeAreaView>
     );
   }
