@@ -90,8 +90,9 @@ export default function AddCouponModal(props) {
         setSelected={setSelected}
         dropdownStyles={{backgroundColor: 'gray'}}
         dropdownTextStyles={{color: 'white'}}
-        placeholder="Select store"
+        placeholder="Select store            "
         maxHeight={200}
+        boxStyles={{marginTop: 30}}
       />
 
       <TextInput
@@ -102,7 +103,7 @@ export default function AddCouponModal(props) {
       />
 
       <Pressable onPress={() => setShow(true)}>
-        <Text style={[AppStyles.textInput, AppStyles.darkTextInput]}>
+        <Text style={[AppStyles.textInput, AppStyles.darkTextInput, {width: 330}]}>
           {isDateSet ? dateFormatter(date) : "Coupon Expiry Date"}
         </Text>
       </Pressable>
@@ -134,6 +135,7 @@ export default function AddCouponModal(props) {
               barcodeData: {},
             });
             setCoupon("");
+            Notifications.scheduleNotificationAsync(schedule)
             props.onClose();
           }}
         />
