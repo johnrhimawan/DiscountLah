@@ -1,25 +1,20 @@
 import {
   View,
-  Button,
   Text,
   Modal,
   SafeAreaView,
   ActivityIndicator,
+  Button,
   FlatList,
+  ScrollView,
+  TouchableOpacity,
+  StyleSheet,
 } from "react-native";
+
 import InlineTextButton from "../feature/InlineTextButton";
 import AppStyles from "../../styles/AppStyles";
 import firebase from "firebase";
-import {
-  collection,
-  addDoc,
-  query,
-  where,
-  getDocs,
-  deleteDoc,
-  doc,
-  setDoc,
-} from "firebase/firestore";
+
 import React, { useEffect } from "react";
 import AddCouponModal from "../feature/AddCouponModal";
 import BouncyCheckbox from "react-native-bouncy-checkbox";
@@ -27,6 +22,9 @@ import BouncyCheckbox from "react-native-bouncy-checkbox";
 import * as Notifications from "expo-notifications";
 
 import AddCouponItem from "../feature/AddCouponItem";
+import CouponDetailModal from "../feature/CouponDetailModal";
+import ConfirmDeleteModal from "../feature/ConfirmDeleteModal";
+import BarcodeCamModal from "../feature/BarcodeCamModal";
 
 export default function AddCoupon() {
   let [modalVisible, setModalVisible] = React.useState(false);
@@ -37,41 +35,20 @@ export default function AddCoupon() {
   let [deletedDoc, setDeletedDoc] = React.useState(null);
   let [docRef, setDocRef] = React.useState(null);
 
+  let [dataChange, setDataChange] = React.useState(0);
+
+  const [couponModalIsOpen, setCouponModalIsOpen] = React.useState(false);
+  const [couponModalData, setCouponModalData] = React.useState(null);
+
+  const [currAddCouponData, setCurrAddCouponData] = React.useState({});
+  const [barcodeData, setBarcodeData] = React.useState({});
+
+  const [deleteModalIsOpen, setDeleteModalIsOpen] = React.useState(false);
+  const [deleteModalData, setDeleteModalData] = React.useState(null);
+
+  const [barcodeModalIsOpen, setBarcodeModalIsOpen] = React.useState(false);
+
   let [pageNumber, setPageNumber] = React.useState(0);
-
-  async function schedulePushNotification() {
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title: "You've got mail! 📬",
-        body: "Here is the notification body",
-        data: { data: "goes here" },
-      },
-      trigger: { seconds: 2 },
-    });
-  }
-
-  let scheduleNotification = async () => {
-    const trigger = new Date(Date.now() + 60 * 60 * 1000);
-    trigger.setMinutes(0);
-    trigger.setSeconds(0);
-
-    Notifications.scheduleNotificationAsync({
-      content: {
-        title: "Happy new hour!",
-      },
-      trigger,
-    });
-  };
-
-  async function scheduleAndCancel() {
-    const identifier = await Notifications.scheduleNotificationAsync({
-      content: {
-        title: "Hey!",
-      },
-      trigger: { seconds: 60, repeats: true },
-    });
-    await Notifications.cancelScheduledNotificationAsync(identifier);
-  }
 
   let loadCouponList = async () => {
     console.log("load coupon");
@@ -82,8 +59,8 @@ export default function AddCoupon() {
       .collection("coupons")
       .where("userId", "==", firebase.auth().currentUser.uid)
       .orderBy("validity")
-      .startAt(pageNumber * 4)
-      .limit(4)
+      // .startAt(pageNumber * 4)
+      .limit(2)
       .get()
       .then((querySnapshot) => {
         // console.log(querySnapshot);
@@ -117,6 +94,19 @@ export default function AddCoupon() {
     console.log("check coupon");
     const couponRef = firebase.firestore().collection("coupons").doc(item.id);
     couponRef.set({ completed: isChecked }, { merge: true });
+  };
+
+  let openDeleteModal = (coupon) => {
+    setCouponModalIsOpen(false);
+    setDeleteModalIsOpen(true);
+    setDeleteModalData(coupon);
+  };
+
+  let deleteCouponSequence = (coupon) => {
+    deleteCoupon(coupon.id);
+    setDeleteModalIsOpen(false);
+    setDataChange(dataChange + 1);
+    alert("Coupon successfully deleted");
   };
 
   let deleteCoupon = async (couponId) => {
@@ -160,55 +150,13 @@ export default function AddCoupon() {
     await Notifications.cancelScheduledNotificationAsync(schedule);
   }
 
-  let renderCouponItem = ({ item }) => {
-    console.log("render coupon");
-    return (
-      <View
-        style={[
-          AppStyles.rowContainer,
-          AppStyles.rightMargin,
-          AppStyles.leftMargin,
-        ]}
-      >
-        <View style={AppStyles.fillSpace}>
-          <BouncyCheckbox
-            isChecked={item.complated}
-            size={25}
-            fillColor="#258ea6"
-            unfillColor="#FFFFFF"
-            text={item.text}
-            iconStyle={{ borderColor: "#258ea6" }}
-            onPress={(isChecked) => {
-              checkCouponItem(item, isChecked);
-            }}
-          />
-        </View>
-        <InlineTextButton
-          text="Delete"
-          color="#258ea6"
-          onPress={() => deleteCoupon(item.id)}
-        />
-      </View>
-    );
-  };
-
   let showCouponList = () => {
     console.log("show coupon");
     if (coupons.length > 0) {
       return (
         <View>
-          <AddCouponItem coupons={coupons} />
+          <AddCouponItem coupons={coupons} openModal={openCouponModal} />
         </View>
-        // <FlatList
-        //   data={coupons}
-        //   refreshing={isRefreshing}
-        //   onRefresh={() => {
-        //     loadCouponList();
-        //     setIsRefreshing(true);
-        //   }}
-        //   renderItem={renderCouponItem}
-        //   keyExtractor={(item) => item.id}
-        // />
       );
     } else {
       return (
@@ -219,30 +167,12 @@ export default function AddCoupon() {
         </View>
       );
     }
-    // console.log("show coupon");
-    // return (
-    //   <FlatList
-    //     data={coupons}
-    //     refreshing={isRefreshing}
-    //     onRefresh={() => {
-    //       loadCouponList();
-    //       setIsRefreshing(true);
-    //     }}
-    //     renderItem={renderCouponItem}
-    //     keyExtractor={(item) => item.id}
-    //   />
-    // );
   };
 
   let showContent = () => {
     console.log("show content");
     return (
       <View>
-        <Button
-          title="Add Coupon"
-          onPress={() => setModalVisible(true)}
-          color="#fb4d3d"
-        />
         {isLoading ? <ActivityIndicator size="large" /> : showCouponList()}
       </View>
     );
@@ -276,15 +206,99 @@ export default function AddCoupon() {
         console.error("Error adding document: ", error);
       });
 
-    let updatedCoupons = [...coupons];
-    updatedCoupons.push(couponToSave);
+    setDataChange(dataChange + 1);
 
-    setCoupons(updatedCoupons);
+    // let updatedCoupons = [...coupons];
+
+    // firebase
+    //   .firestore()
+    //   .collections("coupons")
+    //   .doc(docRef.id)
+    //   .then((doc) => {
+    //     couponToSave.validity = doc.data().validity;
+    //   })
+    //   .catch((err) => {
+    //     console.error("Validity error: " + err)
+    //   });
+    // console.log(couponToSave.validity);
+    // updatedCoupons.push(couponToSave);
+
+    // setCoupons(updatedCoupons);
+  };
+
+  let markCouponUsed = (coupon) => {
+    firebase
+      .firestore()
+      .collection("coupons")
+      .doc(coupon.id)
+      .update({ used: true })
+      .then(() => {
+        console.log("Coupon mark used successfully");
+      })
+      .catch((err) => {
+        console.error("Error marking used: " + err);
+      });
+    removeSchedule(coupon.schedule);
+    closeCouponModal();
+    setDataChange(dataChange + 1);
+  };
+
+  let markCouponUnused = (coupon) => {
+    firebase
+      .firestore()
+      .collection("coupons")
+      .doc(coupon.id)
+      .update({ used: false })
+      .then(() => {
+        console.log("Coupon mark unused successfully");
+      })
+      .catch((err) => {
+        console.error("Error marking unused: " + err);
+      });
+
+    assignSchedule(coupon.schedule);
+    closeCouponModal();
+    setDataChange(dataChange + 1);
+  };
+
+  let openCouponModal = (couponData) => {
+    setCouponModalData(couponData);
+    setCouponModalIsOpen(true);
+  };
+
+  let closeCouponModal = () => {
+    setCouponModalIsOpen(false);
+    setCouponModalData(null);
+  };
+
+  let assignSchedule = (coupon) => {
+    Notifications.scheduleNotificationAsync(coupon.schedule);
+  };
+
+  let openBarcodeModal = (couponData) => {
+    console.log("Open Barcode: ")
+    console.log(couponData)
+    setCurrAddCouponData(couponData);
+    setModalVisible(false);
+    setBarcodeModalIsOpen(true);
+  };
+
+  let backToCoupons = () => {
+    setBarcodeModalIsOpen(false)
+    setModalVisible(true)
+  }
+
+  let afterRetrieval = (couponData) => {
+    setCurrAddCouponData(couponData);
+    console.log("------------------- after ret:")
+    console.log(currAddCouponData)
+    setBarcodeModalIsOpen(false);
+    setModalVisible(true);
   };
 
   useEffect(() => {
     loadCouponList();
-  }, []);
+  }, [dataChange]);
 
   if (isLoading) {
     return null;
@@ -300,25 +314,106 @@ export default function AddCoupon() {
           <AddCouponModal
             onClose={() => setModalVisible(false)}
             addCoupon={addCoupon}
+            coupon={currAddCouponData}
+            openBarcode={openBarcodeModal}
           />
         </Modal>
-        <Text
-          style={{
-            marginTop: 20,
-            fontWeight: "bold",
-            fontSize: 20,
-            marginLeft: 20,
-          }}
+
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={barcodeModalIsOpen}
+          onRequestClose={() => backToCoupons()}
         >
-          Coupon
-        </Text>
-        {showContent()}
-        <Button
+          <BarcodeCamModal
+            onClose={() => backToCoupons()}
+            coupon={currAddCouponData}
+            afterRetrieval={afterRetrieval}
+          />
+        </Modal>
+
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={couponModalIsOpen}
+          onRequestClose={closeCouponModal}
+        >
+          <CouponDetailModal
+            closeModal={closeCouponModal}
+            coupon={couponModalData}
+            openDeleteModal={openDeleteModal}
+            markUsed={markCouponUsed}
+            markUnused={markCouponUnused}
+          />
+        </Modal>
+        <Modal
+          animationType="fade"
+          transparent={true}
+          visible={deleteModalIsOpen}
+          onRequestClose={() => setDeleteModalIsOpen(false)}
+        >
+          <ConfirmDeleteModal
+            deleteCouponSequence={deleteCouponSequence}
+            closeModal={() => setDeleteModalIsOpen(false)}
+            coupon={deleteModalData}
+          />
+        </Modal>
+        <View style={{ flexDirection: "row" }}>
+          <Text
+            style={{
+              marginTop: 20,
+              fontWeight: "bold",
+              fontSize: 20,
+              marginLeft: 20,
+            }}
+          >
+            Coupons
+          </Text>
+
+          <TouchableOpacity
+            onPress={() => setModalVisible(true)}
+            style={[
+              styles.couponButton,
+              {
+                borderColor: "#FF6347",
+                borderWidth: 1,
+                marginTop: 17,
+                marginLeft: 90,
+              },
+            ]}
+          >
+            <Text style={[styles.buttonText, { color: "#ff6347" }]}>
+              Add Coupon
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={openBarcodeModal}
+            style={[
+              styles.couponButton,
+              {
+                borderColor: "#FF6347",
+                borderWidth: 1,
+                marginTop: 17,
+                marginLeft: 5,
+              },
+            ]}
+          >
+            <Text style={[styles.buttonText, { color: "#ff6347" }]}>test</Text>
+          </TouchableOpacity>
+        </View>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          style={{ marginTop: 20 }}
+        >
+          {showContent()}
+        </ScrollView>
+
+        {/* <Button
           title="Back"
           onPress={() => {
             setPageNumber(pageNumber === 0 ? 0 : pageNumber - 1);
             console.log(pageNumber)
-            loadCouponList();
+            setDataChange(dataChange + 1)
           }}
         />
         <Button
@@ -326,9 +421,9 @@ export default function AddCoupon() {
           onPress={() => {
             setPageNumber(pageNumber + 1);
             console.log(pageNumber)
-            loadCouponList();
+            setDataChange(dataChange + 1)
           }}
-        />
+        /> */}
         {/* <Button
           title="Press to schedule a notification"
           onPress={async () => {
@@ -340,3 +435,31 @@ export default function AddCoupon() {
     );
   }
 }
+
+const styles = StyleSheet.create({
+  menuItemStyle: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginLeft: 20,
+    marginTop: 7,
+    marginBottom: 7,
+  },
+
+  titleStyle: {
+    fontSize: 19,
+    fontWeight: "600",
+  },
+
+  couponButton: {
+    width: "40%",
+    padding: 5,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 3,
+  },
+
+  buttonText: {
+    fontSize: 14,
+    fontWeight: "bold",
+  },
+});
