@@ -22,16 +22,16 @@ export default function Landing({ navigation }) {
   return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <View>
-          <Image source={logo} style={{ width: 300, height: 300 }} />
+          <Image source={logo} style={{ width: 300, height: 300 }} testID="hi"/>
           <Text style={{fontFamily: "Sunflower_700Bold", fontSize: 24, textAlign: "left", marginLeft: 10}}> Welcome!</Text>
           <Text style={{fontFamily: "Sunflower_500Medium", fontSize: 18, color: "#9f9f9f", textAlign: "left", marginLeft: 15, marginTop: 5}}>Login or Sign Up to continue</Text>
         </View>
         <View style={{marginTop: 10}}>
-        <Pressable style={styles.button} onPress={() => navigation.navigate("Register")}>
+        <Pressable style={styles.button} onPress={() => navigation.navigate("Register")} testID="Landing.signup" >
           <Text style={styles.text}> Sign Up </Text>
         </Pressable>
-        <Pressable style={styles.button} onPress={() => navigation.navigate("Login")}>
-          <Text style={styles.text}> Login </Text>
+        <Pressable style={styles.button} onPress={() => navigation.navigate("Login")} testID="Landing.login">
+          <Text style={styles.text}> Login </Text>-
         </Pressable>
         </View>
       </View>
