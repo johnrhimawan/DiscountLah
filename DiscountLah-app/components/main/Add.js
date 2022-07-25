@@ -60,7 +60,7 @@ export default function AddCoupon() {
       .where("userId", "==", firebase.auth().currentUser.uid)
       .orderBy("validity")
       // .startAt(pageNumber * 4)
-      .limit(2)
+      // .limit(10)
       .get()
       .then((querySnapshot) => {
         // console.log(querySnapshot);
@@ -207,6 +207,7 @@ export default function AddCoupon() {
       });
 
     setDataChange(dataChange + 1);
+    setCurrAddCouponData({});
 
     // let updatedCoupons = [...coupons];
 

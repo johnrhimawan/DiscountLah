@@ -49,7 +49,7 @@ export default function AddCouponModal(props) {
 
     let body =
       "Your coupon for " +
-      store +
+      storeNames[selected - 1].value +
       " is expiring in 24 hours. Grab your deals soon!";
 
     let schedule = {
@@ -64,6 +64,23 @@ export default function AddCouponModal(props) {
     };
 
     setSchedule(schedule);
+    
+    let barcode = barcodeData
+
+    if (!barcodeData) {
+      barcode = { usesBarcode: false, type: "", data: "" }
+    }
+
+    props.addCoupon({
+      storeName: storeNames[selected - 1].value,
+      couponId: coupon,
+      validity: date,
+      desc: description,
+      schedule: schedule,
+      barcodeData: barcode,
+    });
+    setCoupon("");
+    Notifications.scheduleNotificationAsync(schedule);
   };
 
   const onDateChange = (event, selectedDate) => {
@@ -84,20 +101,17 @@ export default function AddCouponModal(props) {
     );
   };
 
-  const isFocused = useIsFocused()
+  const isFocused = useIsFocused();
 
   useEffect(() => {
-    console.log("Executed")
+    console.log("Executed");
     if (isFocused) {
       if (props.coupon) {
-        setSelected(props.coupon.selected);
         if (props.coupon.barcodeData) {
           setCoupon(props.coupon.barcodeData.data);
         }
-        setValidity(props.coupon.validity);
         setDescription(props.coupon.desc);
         setBarcodeData(props.coupon.barcodeData);
-        setSchedule(props.coupon.schedule);
       }
     }
   }, [isFocused]);
@@ -169,32 +183,7 @@ export default function AddCouponModal(props) {
           title="OK"
           onPress={() => {
             assignSchedule();
-            if (barcodeData) {
-              props.addCoupon({
-                storeName: storeNames[selected - 1].value,
-                couponId: coupon,
-                validity: date,
-                desc: description,
-                schedule: schedule,
-                barcodeData: barcodeData,
-              });
-            } else {
-              props.addCoupon({
-                storeName: storeNames[selected - 1].value,
-                couponId: coupon,
-                validity: date,
-                desc: description,
-                schedule: schedule,
-                barcodeData: {
-                  usesBarcode: false,
-                  type: "-",
-                  data: "-",
-                },
-              });
-            }
-
-            setCoupon("");
-            Notifications.scheduleNotificationAsync(schedule);
+            console.log(schedule)
             props.onClose();
           }}
         />

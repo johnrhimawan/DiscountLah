@@ -61,6 +61,7 @@ export default function Home({ navigation }) {
       .where("used", "==", false)
       .where("validity", ">", today)
       .orderBy("validity")
+      .limit(5)
       .get()
       .then((querySnapshot) => {
         if (querySnapshot) {
