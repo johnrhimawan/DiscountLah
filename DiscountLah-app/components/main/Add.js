@@ -387,20 +387,6 @@ export default function AddCoupon() {
               Add Coupon
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            onPress={openBarcodeModal}
-            style={[
-              styles.couponButton,
-              {
-                borderColor: "#FF6347",
-                borderWidth: 1,
-                marginTop: 17,
-                marginLeft: 5,
-              },
-            ]}
-          >
-            <Text style={[styles.buttonText, { color: "#ff6347" }]}>test</Text>
-          </TouchableOpacity>
         </View>
         <ScrollView
           showsVerticalScrollIndicator={false}

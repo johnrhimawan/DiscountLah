@@ -8,21 +8,36 @@ const onPressMock = jest.fn();
 const pressed = "pressed";
 
 describe('Landing Page', () => {
-    describe('test', () => {
-        it('test', () => {
-            const screen = render(<Landing />)
-            const view = screen.getByTestId("hi")
-            expect(view).not.toBeNull()
-        })
-    });
 
-    describe('Login Button should be pressable', () => {
+    describe('Image should be visible', () => {
+        it('test 1', () => {
+            const screen = render(<Landing />)
+            const image = screen.getByTestId("image")
+            expect(image).not.toBeNull()
+        })
+    })
+
+    describe('Login Button should be visible', () => {
       it('test 1', () => {
         const screen = render(
             <Landing />
         );
-        fireEvent.press(getByTestId("Landing.login"))
-        
+        const button = screen.getByTestId("Landing.login")
+        expect(button).not.toBeNull()
       });
     });
+
+    describe('Sign Up Button should be visible', () => {
+        it('test 1', () => {
+            const screen = render(<Landing />)
+            const button = screen.getByTestId("Landing.signup")
+            expect(button).not.toBeNull()
+        })
+    })
+
+    describe("Login Button should be pressable", () => {
+        it ('test 1', () => {
+            
+        })
+    })
 })
