@@ -72,8 +72,8 @@ export default function AddCouponItem({ coupons, img, openModal }) {
 
 const CouponInfo = (props) => (
   <View style={{ width: "55%", justifyContent: "space-evenly" }}>
-    {console.log(props.coupon)}
-    {console.log(props.coupon.validity)}
+    {/* {console.log(props.coupon)}
+    {console.log(props.coupon.validity)} */}
     <Text style={styles.titleStyle}>{props.coupon.storeName}</Text>
     <Text>{props.coupon.desc}</Text>
     <Text>

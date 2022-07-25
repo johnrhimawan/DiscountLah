@@ -24,6 +24,7 @@ import * as Notifications from "expo-notifications";
 import AddCouponItem from "../feature/AddCouponItem";
 import CouponDetailModal from "../feature/CouponDetailModal";
 import ConfirmDeleteModal from "../feature/ConfirmDeleteModal";
+import BarcodeCamModal from "../feature/BarcodeCamModal";
 
 export default function AddCoupon() {
   let [modalVisible, setModalVisible] = React.useState(false);
@@ -39,10 +40,13 @@ export default function AddCoupon() {
   const [couponModalIsOpen, setCouponModalIsOpen] = React.useState(false);
   const [couponModalData, setCouponModalData] = React.useState(null);
 
-  const [currCoupon, setCurrCoupon] = React.useState("");
+  const [currAddCouponData, setCurrAddCouponData] = React.useState({});
+  const [barcodeData, setBarcodeData] = React.useState({});
 
   const [deleteModalIsOpen, setDeleteModalIsOpen] = React.useState(false);
   const [deleteModalData, setDeleteModalData] = React.useState(null);
+
+  const [barcodeModalIsOpen, setBarcodeModalIsOpen] = React.useState(false);
 
   let [pageNumber, setPageNumber] = React.useState(0);
 
@@ -236,7 +240,7 @@ export default function AddCoupon() {
       });
     removeSchedule(coupon.schedule);
     closeCouponModal();
-    setDataChange(dataChange + 1)
+    setDataChange(dataChange + 1);
   };
 
   let markCouponUnused = (coupon) => {
@@ -254,7 +258,7 @@ export default function AddCoupon() {
 
     assignSchedule(coupon.schedule);
     closeCouponModal();
-    setDataChange(dataChange + 1)
+    setDataChange(dataChange + 1);
   };
 
   let openCouponModal = (couponData) => {
@@ -269,6 +273,27 @@ export default function AddCoupon() {
 
   let assignSchedule = (coupon) => {
     Notifications.scheduleNotificationAsync(coupon.schedule);
+  };
+
+  let openBarcodeModal = (couponData) => {
+    console.log("Open Barcode: ")
+    console.log(couponData)
+    setCurrAddCouponData(couponData);
+    setModalVisible(false);
+    setBarcodeModalIsOpen(true);
+  };
+
+  let backToCoupons = () => {
+    setBarcodeModalIsOpen(false)
+    setModalVisible(true)
+  }
+
+  let afterRetrieval = (couponData) => {
+    setCurrAddCouponData(couponData);
+    console.log("------------------- after ret:")
+    console.log(currAddCouponData)
+    setBarcodeModalIsOpen(false);
+    setModalVisible(true);
   };
 
   useEffect(() => {
@@ -289,6 +314,21 @@ export default function AddCoupon() {
           <AddCouponModal
             onClose={() => setModalVisible(false)}
             addCoupon={addCoupon}
+            coupon={currAddCouponData}
+            openBarcode={openBarcodeModal}
+          />
+        </Modal>
+
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={barcodeModalIsOpen}
+          onRequestClose={() => backToCoupons()}
+        >
+          <BarcodeCamModal
+            onClose={() => backToCoupons()}
+            coupon={currAddCouponData}
+            afterRetrieval={afterRetrieval}
           />
         </Modal>
 
@@ -345,6 +385,20 @@ export default function AddCoupon() {
             <Text style={[styles.buttonText, { color: "#ff6347" }]}>
               Add Coupon
             </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={openBarcodeModal}
+            style={[
+              styles.couponButton,
+              {
+                borderColor: "#FF6347",
+                borderWidth: 1,
+                marginTop: 17,
+                marginLeft: 5,
+              },
+            ]}
+          >
+            <Text style={[styles.buttonText, { color: "#ff6347" }]}>test</Text>
           </TouchableOpacity>
         </View>
         <ScrollView

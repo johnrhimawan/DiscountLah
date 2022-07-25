@@ -6,21 +6,23 @@ import {
   Platform,
   Pressable,
 } from "react-native";
-import React from "react";
+import React, { useEffect } from "react";
 import AppStyles from "../../styles/AppStyles";
 
 import DateTimePicker from "@react-native-community/datetimepicker";
 import SelectList from "react-native-dropdown-select-list";
 
-import * as Notifications from "expo-notifications"
+import * as Notifications from "expo-notifications";
 import { BigShouldersDisplay_200ExtraLight } from "@expo-google-fonts/dev";
 
+import { useIsFocused } from "@react-navigation/native";
+
 const storeNames = [
-  {key:1, value:'Boost'},
-  {key:2, value:'Don Don Donki'},
-  {key:3, value:'H&M'},
-  {key:4, value:'KFC'},
-  {key:5, value:'NUS Co-op'},
+  { key: 1, value: "Boost" },
+  { key: 2, value: "Don Don Donki" },
+  { key: 3, value: "H&M" },
+  { key: 4, value: "KFC" },
+  { key: 5, value: "NUS Co-op" },
 ];
 
 export default function AddCouponModal(props) {
@@ -28,20 +30,27 @@ export default function AddCouponModal(props) {
   let [selected, setSelected] = React.useState(0);
   let [store, setStore] = React.useState("");
   let [description, setDescription] = React.useState("");
-  //let [validity, setValidity] = React.useState("");
+  let [validity, setValidity] = React.useState("");
 
   const [isDateSet, setIsDateSet] = React.useState(false);
   const [date, setDate] = React.useState(new Date());
   const [show, setShow] = React.useState(false);
 
+  const [barcodeData, setBarcodeData] = React.useState({});
+  const [data, setData] = React.useState({});
+
   const [schedule, setSchedule] = React.useState({});
+  const [storeName, setStoreName] = React.useState("");
 
   let assignSchedule = () => {
     const trigger = new Date(date - 24 * 60 * 60 * 1000);
     trigger.setMinutes(0);
     trigger.setSeconds(0);
 
-    let body = "Your coupon for " + store + " is expiring in 24 hours. Grab your deals soon!"
+    let body =
+      "Your coupon for " +
+      store +
+      " is expiring in 24 hours. Grab your deals soon!";
 
     let schedule = {
       content: {
@@ -51,10 +60,10 @@ export default function AddCouponModal(props) {
       trigger,
       data: {
         couponId: coupon,
-      }
-    }
-    
-    setSchedule(schedule)
+      },
+    };
+
+    setSchedule(schedule);
   };
 
   const onDateChange = (event, selectedDate) => {
@@ -75,6 +84,24 @@ export default function AddCouponModal(props) {
     );
   };
 
+  const isFocused = useIsFocused()
+
+  useEffect(() => {
+    console.log("Executed")
+    if (isFocused) {
+      if (props.coupon) {
+        setSelected(props.coupon.selected);
+        if (props.coupon.barcodeData) {
+          setCoupon(props.coupon.barcodeData.data);
+        }
+        setValidity(props.coupon.validity);
+        setDescription(props.coupon.desc);
+        setBarcodeData(props.coupon.barcodeData);
+        setSchedule(props.coupon.schedule);
+      }
+    }
+  }, [isFocused]);
+
   return (
     <View style={AppStyles.container}>
       <Text style={AppStyles.header}>Add Coupon</Text>
@@ -88,11 +115,11 @@ export default function AddCouponModal(props) {
       <SelectList
         data={storeNames}
         setSelected={setSelected}
-        dropdownStyles={{backgroundColor: 'gray'}}
-        dropdownTextStyles={{color: 'white'}}
+        dropdownStyles={{ backgroundColor: "gray" }}
+        dropdownTextStyles={{ color: "white" }}
         placeholder="Select store            "
         maxHeight={200}
-        boxStyles={{marginTop: 30}}
+        boxStyles={{ marginTop: 30 }}
       />
 
       <TextInput
@@ -102,8 +129,24 @@ export default function AddCouponModal(props) {
         onChangeText={setCoupon}
       />
 
+      <Button
+        title="Scan Barcode"
+        onPress={() => {
+          props.openBarcode({
+            selected: selected,
+            couponId: coupon,
+            validity: date,
+            desc: description,
+            schedule: schedule,
+            barcodeData: barcodeData,
+          });
+        }}
+      />
+
       <Pressable onPress={() => setShow(true)}>
-        <Text style={[AppStyles.textInput, AppStyles.darkTextInput, {width: 330}]}>
+        <Text
+          style={[AppStyles.textInput, AppStyles.darkTextInput, { width: 330 }]}
+        >
           {isDateSet ? dateFormatter(date) : "Coupon Expiry Date"}
         </Text>
       </Pressable>
@@ -125,17 +168,33 @@ export default function AddCouponModal(props) {
         <Button
           title="OK"
           onPress={() => {
-            assignSchedule()
-            props.addCoupon({
-              storeName: storeNames[selected - 1].value,
-              couponId: coupon,
-              validity: date,
-              desc: description,
-              schedule: schedule,
-              barcodeData: {},
-            });
+            assignSchedule();
+            if (barcodeData) {
+              props.addCoupon({
+                storeName: storeNames[selected - 1].value,
+                couponId: coupon,
+                validity: date,
+                desc: description,
+                schedule: schedule,
+                barcodeData: barcodeData,
+              });
+            } else {
+              props.addCoupon({
+                storeName: storeNames[selected - 1].value,
+                couponId: coupon,
+                validity: date,
+                desc: description,
+                schedule: schedule,
+                barcodeData: {
+                  usesBarcode: false,
+                  type: "-",
+                  data: "-",
+                },
+              });
+            }
+
             setCoupon("");
-            Notifications.scheduleNotificationAsync(schedule)
+            Notifications.scheduleNotificationAsync(schedule);
             props.onClose();
           }}
         />
