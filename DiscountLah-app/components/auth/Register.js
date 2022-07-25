@@ -73,7 +73,7 @@ export class Register extends Component {
                     style={styles.textinput}
                 />
                 
-          <Pressable style={styles.button} onPress={() => this.onSignUp()}>
+          <Pressable style={styles.button} onPress={() => this.onSignUp()} testID="Register.signup" >
             <Text style={styles.text}> Register </Text>
           </Pressable>
             </View>

@@ -34,10 +34,4 @@ describe('Landing Page', () => {
             expect(button).not.toBeNull()
         })
     })
-
-    describe("Login Button should be pressable", () => {
-        it ('test 1', () => {
-            
-        })
-    })
 })
